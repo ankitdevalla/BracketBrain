@@ -44,7 +44,19 @@ def load_data():
         how='left'
     )
     
-    return teams_df, enhanced_stats, current_stats, latest_season
+    # Historical seed matchup data
+    seed_matchups = {
+        (1, 16): 0.987,
+        (2, 15): 0.929,
+        (3, 14): 0.853,
+        (4, 13): 0.788,
+        (5, 12): 0.647,
+        (6, 11): 0.609,
+        (7, 10): 0.613,
+        (8, 9): 0.481
+    }
+    
+    return teams_df, enhanced_stats, current_stats, latest_season, seed_matchups
 
 # Load the trained model
 @st.cache_resource
@@ -71,9 +83,9 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
     # Calculate differences
     diffs = {
         'SeedDiff': team1_seed - team2_seed,
-        'KenPomDiff': team1_stats['KenPom'] - team2_stats['KenPom'],
+        'KenPomDiff': team2_stats['KenPom'] - team1_stats['KenPom'],  # Reversed for KenPom since lower is better
         'Diff_AdjO': team1_stats['AdjO'] - team2_stats['AdjO'],
-        'Diff_AdjD': team1_stats['AdjD'] - team2_stats['AdjD'],
+        'Diff_AdjD': team2_stats['AdjD'] - team1_stats['AdjD'],  # Reversed for defensive rating (lower is better)
         'Diff_AdjNetRtg': team1_stats['AdjNetRtg'] - team2_stats['AdjNetRtg'],
         'Diff_SOS_NetRtg': team1_stats['SOS_NetRtg'] - team2_stats['SOS_NetRtg'],
         'Diff_Expected Win%': team1_stats['Expected Win%'] - team2_stats['Expected Win%'],
@@ -99,7 +111,7 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
 # Main function
 def main():
     # Load data
-    teams_df, enhanced_stats, current_stats, latest_season = load_data()
+    teams_df, enhanced_stats, current_stats, latest_season, seed_matchups = load_data()
     model = load_model()
     
     # Create sidebar for inputs
@@ -145,6 +157,23 @@ def main():
                 
                 st.write(f"**{team1_name}**: {win_probability*100:.1f}% chance to win")
                 st.write(f"**{team2_name}**: {(1-win_probability)*100:.1f}% chance to win")
+                
+                # Add historical context
+                higher_seed = min(team1_seed, team2_seed)
+                lower_seed = max(team1_seed, team2_seed)
+                if (higher_seed, lower_seed) in seed_matchups:
+                    historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
+                    predicted_upset_prob = 1 - win_probability if team1_seed > team2_seed else win_probability
+                    
+                    st.markdown("---")
+                    st.subheader("Historical Context")
+                    st.write(f"Historically, #{higher_seed} seeds win {historical_win_rate*100:.1f}% of games against #{lower_seed} seeds")
+                    
+                    if predicted_upset_prob > (1 - historical_win_rate):
+                        upset_likelihood = predicted_upset_prob - (1 - historical_win_rate)
+                        st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
+                    elif predicted_upset_prob < (1 - historical_win_rate) * 0.5:
+                        st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
             
             with col2:
                 st.subheader("Key Matchup Factors")
@@ -184,21 +213,25 @@ def main():
         
         overview_data = []
         for col, name in zip(overview_cols, overview_names):
+            # For KenPom and defensive ratings, lower is better
+            lower_is_better = col in ['KenPom', 'AdjD']
+            team1_better = team1_stats[col] < team2_stats[col] if lower_is_better else team1_stats[col] > team2_stats[col]
+            
             overview_data.append({
                 'Metric': name,
                 team1_name: team1_stats[col],
                 team2_name: team2_stats[col],
-                'Advantage': team1_name if team1_stats[col] > team2_stats[col] else team2_name
+                'Advantage': team1_name if team1_better else team2_name
             })
         
         overview_df = pd.DataFrame(overview_data)
         st.table(overview_df)
     
     with tab2:
-        # Offensive stats comparison
-        offensive_cols = ['AdjO', 'ThreePtRate', 'FTRate', 'AstRate', 'TORate', 'ORRate']
-        offensive_names = ['Adjusted Offensive Rating', '3-Point Rate', 'Free Throw Rate', 
-                          'Assist Rate', 'Turnover Rate', 'Offensive Rebound Rate']
+        # Offensive stats comparison - expanded
+        offensive_cols = ['AdjO', 'Score', 'ORtg', 'ThreePtRate', 'FTRate', 'AstRate', 'TORate', 'ORRate']
+        offensive_names = ['Adjusted Offensive Rating', 'Points per Game', 'Offensive Rating', '3-Point Rate', 
+                          'Free Throw Rate', 'Assist Rate', 'Turnover Rate', 'Offensive Rebound Rate']
         
         offensive_data = []
         for col, name in zip(offensive_cols, offensive_names):
@@ -216,13 +249,14 @@ def main():
         st.table(offensive_df)
     
     with tab3:
-        # Defensive stats comparison
-        defensive_cols = ['AdjD', 'DRRate']
-        defensive_names = ['Adjusted Defensive Rating', 'Defensive Rebound Rate']
+        # Defensive stats comparison - expanded
+        defensive_cols = ['AdjD', 'DRtg', 'DRRate']
+        defensive_names = ['Adjusted Defensive Rating', 'Defensive Rating', 'Defensive Rebound Rate']
         
         defensive_data = []
         for col, name in zip(defensive_cols, defensive_names):
-            better_lower = col == 'AdjD'
+            # For defensive ratings, lower is better, but higher is better for rebound rate
+            better_lower = col in ['AdjD', 'DRtg']
             team1_better = team1_stats[col] < team2_stats[col] if better_lower else team1_stats[col] > team2_stats[col]
             
             defensive_data.append({
@@ -236,14 +270,16 @@ def main():
         st.table(defensive_df)
     
     with tab4:
-        # Performance metrics comparison
-        performance_cols = ['HomeWin%', 'AwayWin%', 'NeutralWin%', 'ScoreStdDev', 'MarginStdDev']
-        performance_names = ['Home Win %', 'Away Win %', 'Neutral Win %', 
-                            'Scoring Consistency', 'Margin Consistency']
+        # Performance metrics comparison - expanded
+        performance_cols = ['HomeWin%', 'AwayWin%', 'NeutralWin%', 'ClutchWin%', 'Last10Win%',
+                          'ScoreStdDev', 'MarginStdDev', 'ORtgStdDev', 'DRtgStdDev', 'HomeAwayORtgDiff']
+        performance_names = ['Home Win %', 'Away Win %', 'Neutral Win %', 'Clutch Win %', 'Last 10 Games Win %',
+                           'Scoring Consistency', 'Margin Consistency', 'Off. Rating Consistency',
+                           'Def. Rating Consistency', 'Home/Away Off. Rating Difference']
         
         performance_data = []
         for col, name in zip(performance_cols, performance_names):
-            better_higher = col not in ['ScoreStdDev', 'MarginStdDev']
+            better_higher = col not in ['ScoreStdDev', 'MarginStdDev', 'ORtgStdDev', 'DRtgStdDev']
             team1_better = team1_stats[col] > team2_stats[col] if better_higher else team1_stats[col] < team2_stats[col]
             
             performance_data.append({

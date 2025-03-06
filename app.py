@@ -5,12 +5,16 @@ import joblib
 import os
 import datetime
 from sklearn.preprocessing import StandardScaler
-from assets.basketball_logo import get_logo_html
+from assets.basketball_logo import get_logo_html, create_basketball_logo
+from PIL import Image, ImageDraw
+import base64
+from io import BytesIO
 
-# Set page title and layout
+# Set page configuration
 st.set_page_config(
-    page_title="March Madness Predictor",
+    page_title="BracketBrain",
     layout="wide",
+    page_icon=Image.open(BytesIO(base64.b64decode(create_basketball_logo()))),
     initial_sidebar_state="expanded"
 )
 
@@ -70,8 +74,8 @@ st.markdown(header_html, unsafe_allow_html=True)
 
 # App description
 st.markdown("""
-This tool helps you predict the outcome of March Madness matchups using a machine learning model.
-Enter the teams and their seeds to get predictions and detailed team statistics.
+Use our machine learning model to predict outcomes of games in March Madness and win your bracket challenge. 
+In the matchup you want to analyze, enter the teams and their seeds to get predictions and detailed team comparisons.
 """)
 
 # Load data files
@@ -285,18 +289,19 @@ def main():
                 # Add historical context
                 higher_seed = min(team1_seed, team2_seed)
                 lower_seed = max(team1_seed, team2_seed)
+                
+                # Determine which team is the higher seed
+                higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
+                lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
+                
+                # Get model's predicted probability for the higher seed winning
+                higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
+                
+                # Calculate upset probability (lower seed winning)
+                upset_prob = 1 - higher_seed_win_prob
+                
                 if (higher_seed, lower_seed) in seed_matchups:
                     historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
-                    
-                    # Determine which team is the higher seed
-                    higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
-                    lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
-                    
-                    # Get model's predicted probability for the higher seed winning
-                    higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
-                    
-                    # Calculate upset probability (lower seed winning)
-                    upset_prob = 1 - higher_seed_win_prob
                     historical_upset_prob = 1 - historical_win_rate
                     
                     st.markdown("---")
@@ -316,6 +321,19 @@ def main():
                                 st.info(f"📊 The model actually favors {lower_seed_team} (#{lower_seed} seed) to win this game!")
                     elif upset_prob < historical_upset_prob * 0.5:
                         st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
+                else:
+                    # For later rounds where we don't have historical seed matchup data
+                    st.markdown("---")
+                    st.subheader("Upset Potential")
+                    
+                    # Show upset alert if lower seed has >25% chance to win
+                    if upset_prob > 0.25:
+                        if upset_prob > 0.5:
+                            st.warning(f"⚠️ Major Upset Alert: The model favors {lower_seed_team} (#{lower_seed} seed) to win against {higher_seed_team} (#{higher_seed} seed)!")
+                        else:
+                            st.warning(f"⚠️ Upset Alert: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
+                    else:
+                        st.info(f"🔒 {higher_seed_team} (#{higher_seed} seed) is strongly favored with a {higher_seed_win_prob*100:.1f}% chance to win")
             
             with col2:
                 st.subheader("Key Matchup Factors")

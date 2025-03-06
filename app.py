@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import datetime
 from sklearn.preprocessing import StandardScaler
+from assets.basketball_logo import get_logo_html
 
 # Set page title and layout
 st.set_page_config(
@@ -12,8 +14,61 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# App title and description
-st.title("March Madness Prediction Tool")
+# Custom CSS
+with open("assets/style.css") as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# JavaScript to detect sidebar state and adjust footer
+sidebar_js = """
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to check if sidebar is expanded
+    function checkSidebarState() {
+        const sidebarExpanded = document.querySelector('[data-testid="stSidebar"]').style.width !== '0px';
+        if (sidebarExpanded) {
+            document.body.classList.add('sidebar-expanded');
+        } else {
+            document.body.classList.remove('sidebar-expanded');
+        }
+    }
+    
+    // Initial check
+    setTimeout(checkSidebarState, 500);
+    
+    // Set up a mutation observer to watch for changes to the sidebar
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'style') {
+                checkSidebarState();
+            }
+        });
+    });
+    
+    // Start observing the sidebar for style changes
+    const sidebar = document.querySelector('[data-testid="stSidebar"]');
+    if (sidebar) {
+        observer.observe(sidebar, { attributes: true });
+    }
+});
+</script>
+"""
+st.markdown(sidebar_js, unsafe_allow_html=True)
+
+# Custom header with BracketBrain logo and title
+header_html = f"""
+<div class="header">
+    <div class="header-logo">
+        {get_logo_html(size=50)}
+        <div>
+            <h1 class="header-title">BracketBrain</h1>
+            <p class="header-subtitle">NCAA Tournament Prediction Tool</p>
+        </div>
+    </div>
+</div>
+"""
+st.markdown(header_html, unsafe_allow_html=True)
+
+# App description
 st.markdown("""
 This tool helps you predict the outcome of March Madness matchups using a machine learning model.
 Enter the teams and their seeds to get predictions and detailed team statistics.
@@ -62,11 +117,70 @@ def load_data():
 @st.cache_resource
 def load_model():
     try:
-        model = joblib.load('scripts/final_model.pkl')
+        # Try to load the model with tempo features first
+        model = joblib.load('scripts/final_model_with_tempo.pkl')
+        feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
+        st.sidebar.success("Using model with tempo features")
         return model
     except Exception as e:
-        st.error(f"Error loading model: {str(e)}")
-        return None
+        st.sidebar.warning(f"Could not load model with tempo: {str(e)}")
+        try:
+            # Fall back to original model if needed
+            model = joblib.load('scripts/final_model.pkl')
+            st.sidebar.info("Using original model without tempo features")
+            return model
+        except Exception as e:
+            st.error(f"Error loading any model: {str(e)}")
+            return None
+
+# Function to style dataframes with color highlighting
+def style_comparison_table(df, team1_name, team2_name):
+    # Create a copy to avoid modifying the original
+    styled_df = df.copy()
+    
+    # Function to apply background color based on advantage
+    def apply_color(row):
+        # Skip the Metric and Advantage columns
+        if row.name == 'Metric' or row.name == 'Advantage':
+            return [''] * len(row)
+        
+        styles = [''] * len(row)
+        
+        # Get the values for both teams
+        team1_val = row[team1_name]
+        team2_val = row[team2_name]
+        
+        # Calculate the difference and normalize it
+        diff = abs(team1_val - team2_val)
+        max_val = max(abs(team1_val), abs(team2_val))
+        if max_val == 0:
+            normalized_diff = 0
+        else:
+            normalized_diff = diff / max_val
+        
+        # Cap the intensity at 0.5 (50% difference)
+        intensity = min(normalized_diff * 2, 0.5)
+        
+        # Determine which team has the advantage
+        advantage_team = row['Advantage']
+        
+        # Apply colors - green for better, red for worse
+        for i, col_name in enumerate(row.index):
+            if col_name == team1_name:
+                if advantage_team == team1_name:
+                    styles[i] = f'background-color: rgba(0, 255, 0, {intensity})'
+                else:
+                    styles[i] = f'background-color: rgba(255, 0, 0, {intensity})'
+            elif col_name == team2_name:
+                if advantage_team == team2_name:
+                    styles[i] = f'background-color: rgba(0, 255, 0, {intensity})'
+                else:
+                    styles[i] = f'background-color: rgba(255, 0, 0, {intensity})'
+        
+        return styles
+    
+    # Apply the styling
+    return styled_df.style.apply(apply_color, axis=1)
 
 # Function to create feature differences for prediction
 def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
@@ -77,7 +191,7 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_AstRate', 'Diff_TORate', 'Diff_ORRate', 'Diff_DRRate',
         'Diff_ScoreStdDev', 'Diff_MarginStdDev', 'Diff_ORtgStdDev',
         'Diff_DRtgStdDev', 'Diff_HomeWin%', 'Diff_AwayWin%', 'Diff_NeutralWin%',
-        'Diff_Last10Win%'
+        'Diff_Last10Win%', 'Diff_Poss', 'AvgTempo', 'TempoDiff'
     ]
     
     # Calculate differences
@@ -102,29 +216,39 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_HomeWin%': team1_stats['HomeWin%'] - team2_stats['HomeWin%'],
         'Diff_AwayWin%': team1_stats['AwayWin%'] - team2_stats['AwayWin%'],
         'Diff_NeutralWin%': team1_stats['NeutralWin%'] - team2_stats['NeutralWin%'],
-        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%']
+        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%'],
+        # Add tempo features
+        'Diff_Poss': team1_stats['Poss'] - team2_stats['Poss'],
+        'AvgTempo': (team1_stats['Poss'] + team2_stats['Poss']) / 2,
+        'TempoDiff': abs(team1_stats['Poss'] - team2_stats['Poss'])
     }
     
     # Create DataFrame with features in the correct order
-    return pd.DataFrame([diffs])[feature_order]
+    # Only include features that exist in the feature_order list
+    available_features = [f for f in feature_order if f in diffs]
+    return pd.DataFrame([diffs])[available_features]
 
 # Main function
 def main():
     # Load data
     teams_df, enhanced_stats, current_stats, latest_season, seed_matchups = load_data()
+    
+    # Load model
     model = load_model()
     
-    # Create sidebar for inputs
-    st.sidebar.header("Enter Matchup Details")
+    # Sidebar for team selection
+    st.sidebar.header("Team Selection")
     
-    # Team selection
-    team_names = sorted(current_stats['TeamName'].unique())
+    # Get list of teams for the current season
+    current_teams = current_stats['TeamName'].unique()
     
-    team1_name = st.sidebar.selectbox("Select Team 1", team_names, index=0)
-    team1_seed = st.sidebar.number_input("Team 1 Seed", min_value=1, max_value=16, value=1)
+    # Team 1 selection
+    team1_name = st.sidebar.selectbox("Select Team 1", current_teams, index=0)
+    team1_seed = st.sidebar.number_input("Team 1 Seed", min_value=1, max_value=16, value=1, step=1)
     
-    team2_name = st.sidebar.selectbox("Select Team 2", team_names, index=1)
-    team2_seed = st.sidebar.number_input("Team 2 Seed", min_value=1, max_value=16, value=16)
+    # Team 2 selection
+    team2_name = st.sidebar.selectbox("Select Team 2", current_teams, index=1)
+    team2_seed = st.sidebar.number_input("Team 2 Seed", min_value=1, max_value=16, value=8, step=1)
     
     # Get team stats
     team1_stats = current_stats[current_stats['TeamName'] == team1_name].iloc[0]
@@ -163,16 +287,34 @@ def main():
                 lower_seed = max(team1_seed, team2_seed)
                 if (higher_seed, lower_seed) in seed_matchups:
                     historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
-                    predicted_upset_prob = 1 - win_probability if team1_seed > team2_seed else win_probability
+                    
+                    # Determine which team is the higher seed
+                    higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
+                    lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
+                    
+                    # Get model's predicted probability for the higher seed winning
+                    higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
+                    
+                    # Calculate upset probability (lower seed winning)
+                    upset_prob = 1 - higher_seed_win_prob
+                    historical_upset_prob = 1 - historical_win_rate
                     
                     st.markdown("---")
                     st.subheader("Historical Context")
                     st.write(f"Historically, #{higher_seed} seeds win {historical_win_rate*100:.1f}% of games against #{lower_seed} seeds")
                     
-                    if predicted_upset_prob > (1 - historical_win_rate):
-                        upset_likelihood = predicted_upset_prob - (1 - historical_win_rate)
-                        st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
-                    elif predicted_upset_prob < (1 - historical_win_rate) * 0.5:
+                    # Compare model's upset probability to historical upset probability
+                    if upset_prob > historical_upset_prob:
+                        upset_likelihood = upset_prob - historical_upset_prob
+                        
+                        # Only show upset alert if it's at least 10% higher than historical average
+                        if upset_likelihood >= 0.10:
+                            st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
+                            
+                            # Add additional context if the lower seed is actually favored
+                            if upset_prob > 0.5:
+                                st.info(f"📊 The model actually favors {lower_seed_team} (#{lower_seed} seed) to win this game!")
+                    elif upset_prob < historical_upset_prob * 0.5:
                         st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
             
             with col2:
@@ -195,6 +337,44 @@ def main():
                         feature_name = feature.replace('Diff_', '')
                         team_advantage = team1_name if value > 0 else team2_name
                         st.write(f"• {feature_name}: Advantage to {team_advantage}")
+                
+                # Add tempo analysis if tempo features exist in the prediction
+                tempo_features = [f for f in X.columns if 'Tempo' in f or 'Poss' in f]
+                if tempo_features:
+                    st.markdown("---")
+                    st.subheader("Tempo Analysis")
+                    
+                    # Display team tempos
+                    team1_tempo = team1_stats['Poss']
+                    team2_tempo = team2_stats['Poss']
+                    avg_tempo = (team1_tempo + team2_tempo) / 2
+                    tempo_diff = abs(team1_tempo - team2_tempo)
+                    
+                    st.write(f"**{team1_name}**: {team1_tempo:.1f} possessions/40 min")
+                    st.write(f"**{team2_name}**: {team2_tempo:.1f} possessions/40 min")
+                    
+                    # Classify game pace
+                    if avg_tempo > 70:
+                        pace = "Fast-paced"
+                    elif avg_tempo < 65:
+                        pace = "Slow-paced"
+                    else:
+                        pace = "Moderate-paced"
+                    
+                    st.write(f"Expected game: **{pace}** ({avg_tempo:.1f} possessions/40 min)")
+                    
+                    # Analyze tempo mismatch
+                    if tempo_diff > 4:
+                        faster_team = team1_name if team1_tempo > team2_tempo else team2_name
+                        slower_team = team2_name if team1_tempo > team2_tempo else team1_name
+                        st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
+                        
+                        if faster_team == team1_name and win_probability > 0.5:
+                            st.write("✓ Faster team is favored to win")
+                        elif faster_team == team2_name and win_probability < 0.5:
+                            st.write("✓ Faster team is favored to win")
+                        else:
+                            st.write("✗ Slower team is favored to win")
         
         except Exception as e:
             st.error(f"Error making prediction: {str(e)}")
@@ -225,13 +405,13 @@ def main():
             })
         
         overview_df = pd.DataFrame(overview_data)
-        st.table(overview_df)
+        st.write('<div class="comparison-table">' + style_comparison_table(overview_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
     
     with tab2:
         # Offensive stats comparison - expanded
-        offensive_cols = ['AdjO', 'Score', 'ORtg', 'ThreePtRate', 'FTRate', 'AstRate', 'TORate', 'ORRate']
+        offensive_cols = ['AdjO', 'Score', 'ORtg', 'ThreePtRate', 'FTRate', 'AstRate', 'TORate', 'ORRate', 'Poss']
         offensive_names = ['Adjusted Offensive Rating', 'Points per Game', 'Offensive Rating', '3-Point Rate', 
-                          'Free Throw Rate', 'Assist Rate', 'Turnover Rate', 'Offensive Rebound Rate']
+                          'Free Throw Rate', 'Assist Rate', 'Turnover Rate', 'Offensive Rebound Rate', 'Tempo (Possessions/40 min)']
         
         offensive_data = []
         for col, name in zip(offensive_cols, offensive_names):
@@ -246,7 +426,7 @@ def main():
             })
         
         offensive_df = pd.DataFrame(offensive_data)
-        st.table(offensive_df)
+        st.write('<div class="comparison-table">' + style_comparison_table(offensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
     
     with tab3:
         # Defensive stats comparison - expanded
@@ -267,20 +447,20 @@ def main():
             })
         
         defensive_df = pd.DataFrame(defensive_data)
-        st.table(defensive_df)
+        st.write('<div class="comparison-table">' + style_comparison_table(defensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
     
     with tab4:
         # Performance metrics comparison - expanded
         performance_cols = ['HomeWin%', 'AwayWin%', 'NeutralWin%', 'ClutchWin%', 'Last10Win%',
                           'ScoreStdDev', 'MarginStdDev', 'ORtgStdDev', 'DRtgStdDev', 'HomeAwayORtgDiff']
-        performance_names = ['Home Win %', 'Away Win %', 'Neutral Win %', 'Clutch Win %', 'Last 10 Games Win %',
-                           'Scoring Consistency', 'Margin Consistency', 'Off. Rating Consistency',
-                           'Def. Rating Consistency', 'Home/Away Off. Rating Difference']
+        performance_names = ['Home Win %', 'Away Win %', 'Neutral Site Win %', 'Close Game Win %', 'Last 10 Games Win %',
+                           'Scoring Consistency', 'Margin Consistency', 'Offensive Consistency', 'Defensive Consistency', 'Home/Away Performance Gap']
         
         performance_data = []
         for col, name in zip(performance_cols, performance_names):
-            better_higher = col not in ['ScoreStdDev', 'MarginStdDev', 'ORtgStdDev', 'DRtgStdDev']
-            team1_better = team1_stats[col] > team2_stats[col] if better_higher else team1_stats[col] < team2_stats[col]
+            # For consistency metrics (StdDev), lower is better
+            better_lower = 'StdDev' in col
+            team1_better = team1_stats[col] < team2_stats[col] if better_lower else team1_stats[col] > team2_stats[col]
             
             performance_data.append({
                 'Metric': name,
@@ -290,7 +470,28 @@ def main():
             })
         
         performance_df = pd.DataFrame(performance_data)
-        st.table(performance_df)
+        st.write('<div class="comparison-table">' + style_comparison_table(performance_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
+    
+    # Footer at the bottom of the content
+    footer_html = f"""
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                {get_logo_html()}
+                <span>BracketBrain</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://ankitdevalla.com" target="_blank">About Me</a>
+                <a href="https://github.com/ankitdevalla/March_Madness_Pred" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-contact">
+                <div>ankitdevalla.dev@gmail.com | +1 214-232-7762</div>
+                <div>&copy; {datetime.date.today().year} BracketBrain</div>
+            </div>
+        </div>
+    </footer>
+    """
+    st.markdown(footer_html, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

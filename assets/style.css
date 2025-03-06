@@ -1,0 +1,175 @@
+/* Custom CSS for the March Madness Predictor App */
+
+/* Main container styles to push footer to bottom */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding-bottom: 80px !important;
+}
+
+.main {
+    flex: 1;
+}
+
+/* Header styles */
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+}
+
+.header-logo img {
+    margin-right: 15px;
+    height: 50px;
+    width: 50px;
+}
+
+.header-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #262730;
+    margin: 0;
+}
+
+.header-subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-top: 5px;
+}
+
+/* Team comparison table styles */
+.comparison-table {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.comparison-table table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed;
+}
+
+.comparison-table th, .comparison-table td {
+    padding: 8px 12px;
+    text-align: center;
+}
+
+.comparison-table th:first-child, .comparison-table td:first-child {
+    text-align: left;
+    width: 30%;
+}
+
+.comparison-table th:not(:first-child), .comparison-table td:not(:first-child) {
+    width: 23.33%;
+}
+
+/* Override Streamlit's default container width */
+.block-container {
+    max-width: 95% !important;
+    padding-top: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    padding-bottom: 5rem !important; /* Add extra padding at the bottom */
+}
+
+/* Footer styles */
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #f0f2f6;
+    color: #262730;
+    padding: 10px 0;
+    font-size: 14px;
+    border-top: 1px solid #ddd;
+    transition: left 0.3s, width 0.3s;
+    z-index: 999;
+    margin-top: 30px;
+}
+
+/* When sidebar is expanded */
+.sidebar-expanded .footer {
+    left: 240px; /* Streamlit's default sidebar width */
+    width: calc(100% - 240px);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+}
+
+.footer-logo img {
+    margin-right: 10px;
+    height: 35px;
+    width: 35px;
+}
+
+.footer-logo span {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.footer-links a {
+    color: #0066cc;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 15px;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+.footer-contact {
+    text-align: right;
+    font-size: 13px;
+}
+
+/* Make footer responsive */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .header-logo {
+        margin-bottom: 10px;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .footer-logo, .footer-links, .footer-contact {
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    
+    .footer-contact {
+        order: 3;
+    }
+    
+    /* For mobile, always take full width regardless of sidebar */
+    .sidebar-expanded .footer {
+        left: 0;
+        width: 100%;
+    }
+}

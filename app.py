@@ -124,7 +124,7 @@ def load_model():
         # Try to load the model with tempo features first
         model = joblib.load('models/final_model_py2.pkl')
         # feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
-        st.sidebar.success("Using model v2")
+        st.sidebar.success("Using tempo model v2")
         return model
     except Exception as e:
         st.sidebar.warning(f"Could not load model with tempo: {str(e)}")
@@ -195,7 +195,7 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_AstRate', 'Diff_TORate', 'Diff_ORRate', 'Diff_DRRate',
         'Diff_ScoreStdDev', 'Diff_MarginStdDev', 'Diff_ORtgStdDev',
         'Diff_DRtgStdDev', 'Diff_HomeWin%', 'Diff_AwayWin%', 'Diff_NeutralWin%',
-        'Diff_Last10Win%'
+        'Diff_Last10Win%', 'Diff_Poss', 'AvgTempo', 'TempoDiff'
     ]
     
     # Calculate all differences consistently as (team1 - team2)
@@ -220,7 +220,7 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_HomeWin%': team1_stats['HomeWin%'] - team2_stats['HomeWin%'],
         'Diff_AwayWin%': team1_stats['AwayWin%'] - team2_stats['AwayWin%'],
         'Diff_NeutralWin%': team1_stats['NeutralWin%'] - team2_stats['NeutralWin%'],
-        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%']
+        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%'],
         # Add tempo features
         # 'Diff_Poss': team1_stats['Poss'] - team2_stats['Poss'],
         # 'AvgTempo': (team1_stats['Poss'] + team2_stats['Poss']) / 2,
@@ -266,15 +266,17 @@ def main():
         
         # Create features for prediction with consistent ordering
         if team1_seed > team2_seed:
-            # Swap teams for prediction
+            # Swap teams so that the better seed comes first.
             X = create_matchup_features(team2_stats, team1_stats, team2_seed, team1_seed)
-            # Get prediction and flip it - FLIP THE INTERPRETATION
-            win_probability = model.predict_proba(X)[0][1]  # Flipped from 1-prob to prob
+            # The model now predicts the probability that the originally better-seeded team (team2) wins.
+            prob_better_first = model.predict_proba(X)[0][1]
+            # The win probability for the originally chosen team1 is 1 - that probability.
+            win_probability = 1 - prob_better_first
         else:
-            # No swap needed
+            # No swap needed: team1 is the better (or equal) seed.
             X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed)
-            win_probability = model.predict_proba(X)[0][1]  # Flipped from prob to 1-prob
-        
+            win_probability = model.predict_proba(X)[0][1]
+
         # Display prediction
         col1, col2 = st.columns(2)
         
@@ -360,43 +362,8 @@ def main():
                     team_advantage = team1_name if value > 0 else team2_name
                     st.write(f"• {feature_name}: Advantage to {team_advantage}")
             
-            # Add tempo analysis if tempo features exist in the prediction
-            tempo_features = [f for f in X.columns if 'Tempo' in f or 'Poss' in f]
-            if tempo_features:
-                st.markdown("---")
-                st.subheader("Tempo Analysis")
-                
-                # Display team tempos
-                team1_tempo = team1_stats['Poss']
-                team2_tempo = team2_stats['Poss']
-                avg_tempo = (team1_tempo + team2_tempo) / 2
-                tempo_diff = abs(team1_tempo - team2_tempo)
-                
-                st.write(f"**{team1_name}**: {team1_tempo:.1f} possessions/40 min")
-                st.write(f"**{team2_name}**: {team2_tempo:.1f} possessions/40 min")
-                
-                # Classify game pace
-                if avg_tempo > 70:
-                    pace = "Fast-paced"
-                elif avg_tempo < 65:
-                    pace = "Slow-paced"
-                else:
-                    pace = "Moderate-paced"
-                
-                st.write(f"Expected game: **{pace}** ({avg_tempo:.1f} possessions/40 min)")
-                
-                # Analyze tempo mismatch
-                if tempo_diff > 4:
-                    faster_team = team1_name if team1_tempo > team2_tempo else team2_name
-                    slower_team = team2_name if team1_tempo > team2_tempo else team1_name
-                    st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
-                    
-                    if faster_team == team1_name and win_probability > 0.5:
-                        st.write("✓ Faster team is favored to win")
-                    elif faster_team == team2_name and win_probability < 0.5:
-                        st.write("✓ Faster team is favored to win")
-                    else:
-                        st.write("✗ Slower team is favored to win")
+            # Display tempo analysis in the prediction section
+            display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats)
     
     # Display team comparisons
     st.header("Team Comparison")
@@ -511,6 +478,49 @@ def main():
     </footer>
     """
     st.markdown(footer_html, unsafe_allow_html=True)
+
+# Add a new function to display tempo analysis
+def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats):
+    st.markdown("---")
+    st.subheader("Tempo Analysis")
+    
+    # Display team tempos
+    team1_tempo = team1_stats['Poss'] if 'Poss' in team1_stats else 0
+    team2_tempo = team2_stats['Poss'] if 'Poss' in team2_stats else 0
+    
+    if team1_tempo > 0 and team2_tempo > 0:
+        avg_tempo = (team1_tempo + team2_tempo) / 2
+        tempo_diff = abs(team1_tempo - team2_tempo)
+        
+        st.write(f"**{team1_name}**: {team1_tempo:.1f} possessions/40 min")
+        st.write(f"**{team2_name}**: {team2_tempo:.1f} possessions/40 min")
+        
+        # Classify game pace
+        if avg_tempo > 70:
+            pace = "Fast-paced"
+        elif avg_tempo < 65:
+            pace = "Slow-paced"
+        else:
+            pace = "Moderate-paced"
+        
+        st.write(f"Expected game: **{pace}** ({avg_tempo:.1f} possessions/40 min)")
+        
+        # Analyze tempo mismatch
+        if tempo_diff > 4:
+            faster_team = team1_name if team1_tempo > team2_tempo else team2_name
+            slower_team = team2_name if team1_tempo > team2_tempo else team1_name
+            st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
+            
+            # Only show win prediction if we've made a prediction
+            if 'win_probability' in locals():
+                if faster_team == team1_name and win_probability > 0.5:
+                    st.write("✓ Faster team is favored to win")
+                elif faster_team == team2_name and win_probability < 0.5:
+                    st.write("✓ Faster team is favored to win")
+                else:
+                    st.write("✗ Slower team is favored to win")
+    else:
+        st.write("Tempo data not available for one or both teams.")
 
 if __name__ == "__main__":
     main()

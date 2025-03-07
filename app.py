@@ -122,15 +122,15 @@ def load_data():
 def load_model():
     try:
         # Try to load the model with tempo features first
-        model = joblib.load('scripts/final_model_with_tempo.pkl')
-        feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
-        st.sidebar.success("Using model with tempo features")
+        model = joblib.load('models/final_model_py2.pkl')
+        # feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
+        st.sidebar.success("Using model v2")
         return model
     except Exception as e:
         st.sidebar.warning(f"Could not load model with tempo: {str(e)}")
         try:
             # Fall back to original model if needed
-            model = joblib.load('scripts/final_model.pkl')
+            model = joblib.load('models/final_model.pkl')
             st.sidebar.info("Using original model without tempo features")
             return model
         except Exception as e:
@@ -195,15 +195,15 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_AstRate', 'Diff_TORate', 'Diff_ORRate', 'Diff_DRRate',
         'Diff_ScoreStdDev', 'Diff_MarginStdDev', 'Diff_ORtgStdDev',
         'Diff_DRtgStdDev', 'Diff_HomeWin%', 'Diff_AwayWin%', 'Diff_NeutralWin%',
-        'Diff_Last10Win%', 'Diff_Poss', 'AvgTempo', 'TempoDiff'
+        'Diff_Last10Win%'
     ]
     
-    # Calculate differences
+    # Calculate all differences consistently as (team1 - team2)
     diffs = {
         'SeedDiff': team1_seed - team2_seed,
-        'KenPomDiff': team2_stats['KenPom'] - team1_stats['KenPom'],  # Reversed for KenPom since lower is better
+        'KenPomDiff': team1_stats['KenPom'] - team2_stats['KenPom'],  # Now consistent direction
         'Diff_AdjO': team1_stats['AdjO'] - team2_stats['AdjO'],
-        'Diff_AdjD': team2_stats['AdjD'] - team1_stats['AdjD'],  # Reversed for defensive rating (lower is better)
+        'Diff_AdjD': team1_stats['AdjD'] - team2_stats['AdjD'],  # Now consistent direction
         'Diff_AdjNetRtg': team1_stats['AdjNetRtg'] - team2_stats['AdjNetRtg'],
         'Diff_SOS_NetRtg': team1_stats['SOS_NetRtg'] - team2_stats['SOS_NetRtg'],
         'Diff_Expected Win%': team1_stats['Expected Win%'] - team2_stats['Expected Win%'],
@@ -220,11 +220,11 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed):
         'Diff_HomeWin%': team1_stats['HomeWin%'] - team2_stats['HomeWin%'],
         'Diff_AwayWin%': team1_stats['AwayWin%'] - team2_stats['AwayWin%'],
         'Diff_NeutralWin%': team1_stats['NeutralWin%'] - team2_stats['NeutralWin%'],
-        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%'],
+        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%']
         # Add tempo features
-        'Diff_Poss': team1_stats['Poss'] - team2_stats['Poss'],
-        'AvgTempo': (team1_stats['Poss'] + team2_stats['Poss']) / 2,
-        'TempoDiff': abs(team1_stats['Poss'] - team2_stats['Poss'])
+        # 'Diff_Poss': team1_stats['Poss'] - team2_stats['Poss'],
+        # 'AvgTempo': (team1_stats['Poss'] + team2_stats['Poss']) / 2,
+        # 'TempoDiff': abs(team1_stats['Poss'] - team2_stats['Poss'])
     }
     
     # Create DataFrame with features in the correct order
@@ -264,138 +264,139 @@ def main():
             st.error("Model not loaded. Please check if the model file exists.")
             return
         
-        # Create features for prediction
-        X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed)
+        # Create features for prediction with consistent ordering
+        if team1_seed > team2_seed:
+            # Swap teams for prediction
+            X = create_matchup_features(team2_stats, team1_stats, team2_seed, team1_seed)
+            # Get prediction and flip it - FLIP THE INTERPRETATION
+            win_probability = model.predict_proba(X)[0][1]  # Flipped from 1-prob to prob
+        else:
+            # No swap needed
+            X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed)
+            win_probability = model.predict_proba(X)[0][1]  # Flipped from prob to 1-prob
         
-        # Make prediction
-        try:
-            win_probability = model.predict_proba(X)[0][1]
+        # Display prediction
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Prediction")
+            if win_probability > 0.5:
+                st.success(f"{team1_name} wins with {win_probability*100:.1f}% probability")
+            else:
+                st.success(f"{team2_name} wins with {(1-win_probability)*100:.1f}% probability")
             
-            # Display prediction
-            col1, col2 = st.columns(2)
+            st.progress(win_probability)
             
-            with col1:
-                st.subheader("Prediction")
-                if win_probability > 0.5:
-                    st.success(f"{team1_name} wins with {win_probability*100:.1f}% probability")
-                else:
-                    st.success(f"{team2_name} wins with {(1-win_probability)*100:.1f}% probability")
+            st.write(f"**{team1_name}**: {win_probability*100:.1f}% chance to win")
+            st.write(f"**{team2_name}**: {(1-win_probability)*100:.1f}% chance to win")
+            
+            # Add historical context
+            higher_seed = min(team1_seed, team2_seed)
+            lower_seed = max(team1_seed, team2_seed)
+            
+            # Determine which team is the higher seed
+            higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
+            lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
+            
+            # Get model's predicted probability for the higher seed winning
+            higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
+            
+            # Calculate upset probability (lower seed winning)
+            upset_prob = 1 - higher_seed_win_prob
+            
+            if (higher_seed, lower_seed) in seed_matchups:
+                historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
+                historical_upset_prob = 1 - historical_win_rate
                 
-                st.progress(win_probability)
+                st.markdown("---")
+                st.subheader("Historical Context")
+                st.write(f"Historically, #{higher_seed} seeds win {historical_win_rate*100:.1f}% of games against #{lower_seed} seeds")
                 
-                st.write(f"**{team1_name}**: {win_probability*100:.1f}% chance to win")
-                st.write(f"**{team2_name}**: {(1-win_probability)*100:.1f}% chance to win")
-                
-                # Add historical context
-                higher_seed = min(team1_seed, team2_seed)
-                lower_seed = max(team1_seed, team2_seed)
-                
-                # Determine which team is the higher seed
-                higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
-                lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
-                
-                # Get model's predicted probability for the higher seed winning
-                higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
-                
-                # Calculate upset probability (lower seed winning)
-                upset_prob = 1 - higher_seed_win_prob
-                
-                if (higher_seed, lower_seed) in seed_matchups:
-                    historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
-                    historical_upset_prob = 1 - historical_win_rate
+                # Compare model's upset probability to historical upset probability
+                if upset_prob > historical_upset_prob:
+                    upset_likelihood = upset_prob - historical_upset_prob
                     
-                    st.markdown("---")
-                    st.subheader("Historical Context")
-                    st.write(f"Historically, #{higher_seed} seeds win {historical_win_rate*100:.1f}% of games against #{lower_seed} seeds")
-                    
-                    # Compare model's upset probability to historical upset probability
-                    if upset_prob > historical_upset_prob:
-                        upset_likelihood = upset_prob - historical_upset_prob
+                    # Only show upset alert if it's at least 10% higher than historical average
+                    if upset_likelihood >= 0.04:
+                        st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
                         
-                        # Only show upset alert if it's at least 10% higher than historical average
-                        if upset_likelihood >= 0.10:
-                            st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
-                            
-                            # Add additional context if the lower seed is actually favored
-                            if upset_prob > 0.5:
-                                st.info(f"📊 The model actually favors {lower_seed_team} (#{lower_seed} seed) to win this game!")
-                    elif upset_prob < historical_upset_prob * 0.5:
-                        st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
-                else:
-                    # For later rounds where we don't have historical seed matchup data
-                    st.markdown("---")
-                    st.subheader("Upset Potential")
-                    
-                    # Show upset alert if lower seed has >25% chance to win
-                    if upset_prob > 0.25:
+                        # Add additional context if the lower seed is actually favored
                         if upset_prob > 0.5:
-                            st.warning(f"⚠️ Major Upset Alert: The model favors {lower_seed_team} (#{lower_seed} seed) to win against {higher_seed_team} (#{higher_seed} seed)!")
-                        else:
-                            st.warning(f"⚠️ Upset Alert: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
-                    else:
-                        st.info(f"🔒 {higher_seed_team} (#{higher_seed} seed) is strongly favored with a {higher_seed_win_prob*100:.1f}% chance to win")
-            
-            with col2:
-                st.subheader("Key Matchup Factors")
+                            st.info(f"📊 The model actually favors {lower_seed_team} (#{lower_seed} seed) to win this game!")
+                elif upset_prob < historical_upset_prob * 0.5:
+                    st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
+            else:
+                # For later rounds where we don't have historical seed matchup data
+                st.markdown("---")
+                st.subheader("Upset Potential")
                 
-                # Display feature differences
-                st.write("Most important differences:")
-                feature_diffs = pd.DataFrame({
-                    'Feature': X.columns,
-                    'Value': X.values[0]
-                })
-                feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
-                
-                for _, row in feature_diffs.iterrows():
-                    feature = row['Feature']
-                    value = row['Value']
-                    if feature == 'SeedDiff':
-                        st.write(f"• Seed Difference: {value:.0f}")
+                # Show upset alert if lower seed has >25% chance to win
+                if upset_prob > 0.25:
+                    if upset_prob > 0.5:
+                        st.warning(f"⚠️ Major Upset Alert: The model favors {lower_seed_team} (#{lower_seed} seed) to win against {higher_seed_team} (#{higher_seed} seed)!")
                     else:
-                        feature_name = feature.replace('Diff_', '')
-                        team_advantage = team1_name if value > 0 else team2_name
-                        st.write(f"• {feature_name}: Advantage to {team_advantage}")
-                
-                # Add tempo analysis if tempo features exist in the prediction
-                tempo_features = [f for f in X.columns if 'Tempo' in f or 'Poss' in f]
-                if tempo_features:
-                    st.markdown("---")
-                    st.subheader("Tempo Analysis")
-                    
-                    # Display team tempos
-                    team1_tempo = team1_stats['Poss']
-                    team2_tempo = team2_stats['Poss']
-                    avg_tempo = (team1_tempo + team2_tempo) / 2
-                    tempo_diff = abs(team1_tempo - team2_tempo)
-                    
-                    st.write(f"**{team1_name}**: {team1_tempo:.1f} possessions/40 min")
-                    st.write(f"**{team2_name}**: {team2_tempo:.1f} possessions/40 min")
-                    
-                    # Classify game pace
-                    if avg_tempo > 70:
-                        pace = "Fast-paced"
-                    elif avg_tempo < 65:
-                        pace = "Slow-paced"
-                    else:
-                        pace = "Moderate-paced"
-                    
-                    st.write(f"Expected game: **{pace}** ({avg_tempo:.1f} possessions/40 min)")
-                    
-                    # Analyze tempo mismatch
-                    if tempo_diff > 4:
-                        faster_team = team1_name if team1_tempo > team2_tempo else team2_name
-                        slower_team = team2_name if team1_tempo > team2_tempo else team1_name
-                        st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
-                        
-                        if faster_team == team1_name and win_probability > 0.5:
-                            st.write("✓ Faster team is favored to win")
-                        elif faster_team == team2_name and win_probability < 0.5:
-                            st.write("✓ Faster team is favored to win")
-                        else:
-                            st.write("✗ Slower team is favored to win")
+                        st.warning(f"⚠️ Upset Alert: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
+                else:
+                    st.info(f"🔒 {higher_seed_team} (#{higher_seed} seed) is strongly favored with a {higher_seed_win_prob*100:.1f}% chance to win")
         
-        except Exception as e:
-            st.error(f"Error making prediction: {str(e)}")
+        with col2:
+            st.subheader("Key Matchup Factors")
+            
+            # Display feature differences
+            st.write("Most important differences:")
+            feature_diffs = pd.DataFrame({
+                'Feature': X.columns,
+                'Value': X.values[0]
+            })
+            feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
+            
+            for _, row in feature_diffs.iterrows():
+                feature = row['Feature']
+                value = row['Value']
+                if feature == 'SeedDiff':
+                    st.write(f"• Seed Difference: {value:.0f}")
+                else:
+                    feature_name = feature.replace('Diff_', '')
+                    team_advantage = team1_name if value > 0 else team2_name
+                    st.write(f"• {feature_name}: Advantage to {team_advantage}")
+            
+            # Add tempo analysis if tempo features exist in the prediction
+            tempo_features = [f for f in X.columns if 'Tempo' in f or 'Poss' in f]
+            if tempo_features:
+                st.markdown("---")
+                st.subheader("Tempo Analysis")
+                
+                # Display team tempos
+                team1_tempo = team1_stats['Poss']
+                team2_tempo = team2_stats['Poss']
+                avg_tempo = (team1_tempo + team2_tempo) / 2
+                tempo_diff = abs(team1_tempo - team2_tempo)
+                
+                st.write(f"**{team1_name}**: {team1_tempo:.1f} possessions/40 min")
+                st.write(f"**{team2_name}**: {team2_tempo:.1f} possessions/40 min")
+                
+                # Classify game pace
+                if avg_tempo > 70:
+                    pace = "Fast-paced"
+                elif avg_tempo < 65:
+                    pace = "Slow-paced"
+                else:
+                    pace = "Moderate-paced"
+                
+                st.write(f"Expected game: **{pace}** ({avg_tempo:.1f} possessions/40 min)")
+                
+                # Analyze tempo mismatch
+                if tempo_diff > 4:
+                    faster_team = team1_name if team1_tempo > team2_tempo else team2_name
+                    slower_team = team2_name if team1_tempo > team2_tempo else team1_name
+                    st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
+                    
+                    if faster_team == team1_name and win_probability > 0.5:
+                        st.write("✓ Faster team is favored to win")
+                    elif faster_team == team2_name and win_probability < 0.5:
+                        st.write("✓ Faster team is favored to win")
+                    else:
+                        st.write("✗ Slower team is favored to win")
     
     # Display team comparisons
     st.header("Team Comparison")
@@ -503,7 +504,7 @@ def main():
                 <a href="https://github.com/ankitdevalla/March_Madness_Pred" target="_blank">GitHub</a>
             </div>
             <div class="footer-contact">
-                <div>ankitdevalla.dev@gmail.com | +1 214-232-7762</div>
+                <div>ankitdevalla.dev@gmail.com</div>
                 <div>&copy; {datetime.date.today().year} BracketBrain</div>
             </div>
         </div>

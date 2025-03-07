@@ -85,11 +85,10 @@ body {
     left: 0;
     bottom: 0;
     width: 100%;
-    background-color: #f0f2f6;
-    color: #262730;
+    background-color: #090909;
+    color: #c6c7d4;
     padding: 10px 0;
     font-size: 14px;
-    border-top: 1px solid #ddd;
     transition: left 0.3s, width 0.3s;
     z-index: 999;
     margin-top: 30px;

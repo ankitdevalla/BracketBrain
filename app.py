@@ -363,7 +363,7 @@ def main():
                     st.write(f"• {feature_name}: Advantage to {team_advantage}")
             
             # Display tempo analysis in the prediction section
-            display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats)
+            display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability)
     
     # Display team comparisons
     st.header("Team Comparison")
@@ -480,7 +480,7 @@ def main():
     st.markdown(footer_html, unsafe_allow_html=True)
 
 # Add a new function to display tempo analysis
-def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats):
+def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability=None):
     st.markdown("---")
     st.subheader("Tempo Analysis")
     
@@ -511,8 +511,8 @@ def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats):
             slower_team = team2_name if team1_tempo > team2_tempo else team1_name
             st.write(f"**Significant tempo mismatch**: {faster_team} wants to play much faster than {slower_team}")
             
-            # Only show win prediction if we've made a prediction
-            if 'win_probability' in locals():
+            # Only show win prediction if win_probability is provided
+            if win_probability is not None:
                 if faster_team == team1_name and win_probability > 0.5:
                     st.write("✓ Faster team is favored to win")
                 elif faster_team == team2_name and win_probability < 0.5:

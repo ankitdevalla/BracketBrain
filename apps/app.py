@@ -82,13 +82,13 @@ In the matchup you want to analyze, enter the teams and their seeds to get predi
 @st.cache_data
 def load_data():
     # Load team data
-    teams_df = pd.read_csv("raw_data/MTeams.csv")
+    teams_df = pd.read_csv("../raw_data/MTeams.csv")
     
     # Load enhanced stats
-    enhanced_stats = pd.read_csv("pre_tourney_data/EnhancedTournamentStats.csv")
+    enhanced_stats = pd.read_csv("../pre_tourney_data/EnhancedTournamentStats.csv")
     
     # Load KenPom rankings
-    kenpom_rankings = pd.read_csv("pre_tourney_data/KenPom-Rankings-Updated.csv")
+    kenpom_rankings = pd.read_csv("../pre_tourney_data/KenPom-Rankings-Updated.csv")
     kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
     kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
     

@@ -232,8 +232,8 @@ def style_comparison_table(df, team1_name, team2_name):
 # ------------------------------
 @st.cache_data
 def load_data():
-    teams_df = pd.read_csv("raw_data/MTeams.csv")
-    enhanced_stats = pd.read_csv("scripts/TeamSeasonAverages_with_SoS.csv")
+    teams_df = pd.read_csv("../raw_data/MTeams.csv")
+    enhanced_stats = pd.read_csv("../scripts/TeamSeasonAverages_with_SoS.csv")
     latest_season = enhanced_stats['Season'].max()
     current_stats = enhanced_stats[enhanced_stats['Season'] == latest_season].copy()
     seed_matchups = {

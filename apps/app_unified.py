@@ -9,7 +9,11 @@ from PIL import Image, ImageDraw
 import base64
 from io import BytesIO
 
-# Import custom assets
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Now use regular import
 from assets.basketball_logo import get_logo_html, create_basketball_logo
 
 # ------------------------------
@@ -23,7 +27,7 @@ st.set_page_config(
 )
 
 # Load custom CSS
-with open("assets/style.css") as f:
+with open("../assets/style.css") as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Additional CSS for tables
@@ -90,7 +94,7 @@ Enter the teams and their seeds to get predictions and detailed team comparisons
 @st.cache_resource
 def load_basic_model():
     try:
-        model = joblib.load('models/xgb_model_basic.pkl')
+        model = joblib.load('../models/xgb_model_basic.pkl')
         return model
     except Exception as e:
         st.error(f"Error loading basic model: {str(e)}")
@@ -99,7 +103,7 @@ def load_basic_model():
 @st.cache_resource
 def load_enhanced_model():
     try:
-        model = joblib.load('models/final_model_py2.pkl')
+        model = joblib.load('../models/final_model_py2.pkl')
         return model
     except Exception as e:
         st.error(f"Error loading enhanced model: {str(e)}")

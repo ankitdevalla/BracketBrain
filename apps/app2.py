@@ -8,8 +8,11 @@ import xgboost as xgb
 from PIL import Image
 import base64
 from io import BytesIO
-
-# If you have custom logo assets
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Now use regular import
 from assets.basketball_logo import get_logo_html, create_basketball_logo
 
 # ------------------------------
@@ -23,7 +26,7 @@ st.set_page_config(
 )
 
 # Load custom CSS (for your main styling)
-with open("assets/style.css") as f:
+with open("../assets/style.css") as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Additional CSS to force the comparison tables to full width
@@ -251,7 +254,7 @@ def load_data():
 @st.cache_resource
 def load_model():
     try:
-        model = joblib.load('models/xgb_model_basic.pkl')
+        model = joblib.load('../models/xgb_model_basic.pkl')
         st.sidebar.success("Using basic XGBoost model")
         return model
     except Exception as e:

@@ -5,10 +5,15 @@ import joblib
 import os
 import datetime
 from sklearn.preprocessing import StandardScaler
-from assets.basketball_logo import get_logo_html, create_basketball_logo
 from PIL import Image, ImageDraw
 import base64
 from io import BytesIO
+import sys
+import os
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Now use regular import
+from assets.basketball_logo import get_logo_html, create_basketball_logo
 
 # Set page configuration
 st.set_page_config(
@@ -19,7 +24,7 @@ st.set_page_config(
 )
 
 # Custom CSS
-with open("assets/style.css") as f:
+with open("../assets/style.css") as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # JavaScript to detect sidebar state and adjust footer
@@ -122,7 +127,7 @@ def load_data():
 def load_model():
     try:
         # Try to load the model with tempo features first
-        model = joblib.load('models/final_model_py2.pkl')
+        model = joblib.load('../models/final_model_py2.pkl')
         # feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
         st.sidebar.success("Using tempo model v2")
         return model
@@ -130,7 +135,7 @@ def load_model():
         st.sidebar.warning(f"Could not load model with tempo: {str(e)}")
         try:
             # Fall back to original model if needed
-            model = joblib.load('models/final_model.pkl')
+            model = joblib.load('../models/final_model.pkl')
             st.sidebar.info("Using original model without tempo features")
             return model
         except Exception as e:

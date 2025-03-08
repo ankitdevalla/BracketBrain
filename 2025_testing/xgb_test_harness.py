@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import re
+import xgboost as xgb
 
 # ------------------------------
 # Utility Functions
@@ -20,63 +21,71 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed, in
     Returns:
     - DataFrame with features in the order expected by the model
     """
-    # Base features that all models use
+    # Base features using the available season stats plus seed difference.
     base_features = {
-        'SeedDiff': team1_seed - team2_seed,
-        'KenPomDiff': team1_stats['KenPom'] - team2_stats['KenPom'],
-        'Diff_AdjO': team1_stats['AdjO'] - team2_stats['AdjO'],
-        'Diff_AdjD': team1_stats['AdjD'] - team2_stats['AdjD'],
-        'Diff_AdjNetRtg': team1_stats['AdjNetRtg'] - team2_stats['AdjNetRtg'],
-        'Diff_SOS_NetRtg': team1_stats['SOS_NetRtg'] - team2_stats['SOS_NetRtg'],
-        'Diff_Expected Win%': team1_stats['Expected Win%'] - team2_stats['Expected Win%'],
-        'Diff_ThreePtRate': team1_stats['ThreePtRate'] - team2_stats['ThreePtRate'],
-        'Diff_FTRate': team1_stats['FTRate'] - team2_stats['FTRate'],
-        'Diff_AstRate': team1_stats['AstRate'] - team2_stats['AstRate'],
-        'Diff_TORate': team1_stats['TORate'] - team2_stats['TORate'],
-        'Diff_ORRate': team1_stats['ORRate'] - team2_stats['ORRate'],
-        'Diff_DRRate': team1_stats['DRRate'] - team2_stats['DRRate'],
-        'Diff_ScoreStdDev': team1_stats['ScoreStdDev'] - team2_stats['ScoreStdDev'],
-        'Diff_MarginStdDev': team1_stats['MarginStdDev'] - team2_stats['MarginStdDev'],
-        'Diff_ORtgStdDev': team1_stats['ORtgStdDev'] - team2_stats['ORtgStdDev'],
-        'Diff_DRtgStdDev': team1_stats['DRtgStdDev'] - team2_stats['DRtgStdDev'],
-        'Diff_HomeWin%': team1_stats['HomeWin%'] - team2_stats['HomeWin%'],
-        'Diff_AwayWin%': team1_stats['AwayWin%'] - team2_stats['AwayWin%'],
-        'Diff_NeutralWin%': team1_stats['NeutralWin%'] - team2_stats['NeutralWin%'],
-        'Diff_Last10Win%': team1_stats['Last10Win%'] - team2_stats['Last10Win%']
+        'WinPct_diff': team1_stats['WinPct'] - team2_stats['WinPct'],
+        'Avg_Score_diff': team1_stats['Avg_Score'] - team2_stats['Avg_Score'],
+        'Avg_FGM_diff': team1_stats['Avg_FGM'] - team2_stats['Avg_FGM'],
+        'Avg_FGA_diff': team1_stats['Avg_FGA'] - team2_stats['Avg_FGA'],
+        'Avg_FGM3_diff': team1_stats['Avg_FGM3'] - team2_stats['Avg_FGM3'],
+        'Avg_FGA3_diff': team1_stats['Avg_FGA3'] - team2_stats['Avg_FGA3'],
+        'Avg_FTM_diff': team1_stats['Avg_FTM'] - team2_stats['Avg_FTM'],
+        'Avg_FTA_diff': team1_stats['Avg_FTA'] - team2_stats['Avg_FTA'],
+        'Avg_OR_diff': team1_stats['Avg_OR'] - team2_stats['Avg_OR'],
+        'Avg_DR_diff': team1_stats['Avg_DR'] - team2_stats['Avg_DR'],
+        'Avg_Ast_diff': team1_stats['Avg_Ast'] - team2_stats['Avg_Ast'],
+        'Avg_TO_diff': team1_stats['Avg_TO'] - team2_stats['Avg_TO'],
+        'Avg_Stl_diff': team1_stats['Avg_Stl'] - team2_stats['Avg_Stl'],
+        'Avg_Blk_diff': team1_stats['Avg_Blk'] - team2_stats['Avg_Blk'],
+        'Avg_PF_diff': team1_stats['Avg_PF'] - team2_stats['Avg_PF'],
+        'Avg_Opp_WinPct_diff': team1_stats['Avg_Opp_WinPct'] - team2_stats['Avg_Opp_WinPct'],
+        'Last30_WinRatio_diff': team1_stats['Last30_WinRatio'] - team2_stats['Last30_WinRatio'],
+        'Seed_diff': team1_seed - team2_seed
     }
     
     # Always include tempo features if include_tempo is True.
     if include_tempo:
-        # Use .get with default 0 in case 'Poss' is missing.
         poss1 = team1_stats.get('Poss', 0)
         poss2 = team2_stats.get('Poss', 0)
         raw_avg = (poss1 + poss2) / 2
         raw_diff = abs(poss1 - poss2)
         
         tempo_features = {
-            'Diff_Poss': poss1 - poss2,
+            'Poss_diff': poss1 - poss2,
             'AvgTempo_scaled': raw_avg * 0.2,
             'TempoDiff_scaled': raw_diff * 0.2
         }
         base_features.update(tempo_features)
     
-    # Define feature order based on whether tempo is included
+    # Define the order of base features (tempo features appended if included)
     base_feature_order = [
-        'SeedDiff', 'KenPomDiff', 'Diff_AdjO', 'Diff_AdjD', 'Diff_AdjNetRtg',
-        'Diff_SOS_NetRtg', 'Diff_Expected Win%', 'Diff_ThreePtRate', 'Diff_FTRate',
-        'Diff_AstRate', 'Diff_TORate', 'Diff_ORRate', 'Diff_DRRate',
-        'Diff_ScoreStdDev', 'Diff_MarginStdDev', 'Diff_ORtgStdDev',
-        'Diff_DRtgStdDev', 'Diff_HomeWin%', 'Diff_AwayWin%', 'Diff_NeutralWin%',
-        'Diff_Last10Win%'
+        'WinPct_diff',
+        'Avg_Score_diff',
+        'Avg_FGM_diff',
+        'Avg_FGA_diff',
+        'Avg_FGM3_diff',
+        'Avg_FGA3_diff',
+        'Avg_FTM_diff',
+        'Avg_FTA_diff',
+        'Avg_OR_diff',
+        'Avg_DR_diff',
+        'Avg_Ast_diff',
+        'Avg_TO_diff',
+        'Avg_Stl_diff',
+        'Avg_Blk_diff',
+        'Avg_PF_diff',
+        'Avg_Opp_WinPct_diff',
+        'Last30_WinRatio_diff',
+        'Seed_diff'
     ]
     
-    tempo_feature_order = ['Diff_Poss', 'AvgTempo_scaled', 'TempoDiff_scaled']
-    
+    tempo_feature_order = ['Poss_diff', 'AvgTempo_scaled', 'TempoDiff_scaled']
     feature_order = base_feature_order + (tempo_feature_order if include_tempo else [])
     
-    # Create DataFrame with only the features that exist in our feature dictionary
+    # Create DataFrame with only the features that exist in our feature dictionary, preserving order
     available_features = [f for f in feature_order if f in base_features]
     return pd.DataFrame([base_features])[available_features]
+
 
 def predict_matchup(model, team1_stats, team2_stats, team1_seed, team2_seed, include_tempo=True, model_version=None):
     """
@@ -101,34 +110,35 @@ def predict_matchup(model, team1_stats, team2_stats, team1_seed, team2_seed, inc
     # Create features for the matchup
     X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed, include_tempo)
     
-    # Get prediction from model
-    prob_first_wins = model.predict_proba(X)[0][1]
-        
-    # If teams were swapped, flip the probability so it corresponds to the originally selected team1
+    # Get prediction from model using model.predict on a DMatrix
+    dmatrix = xgb.DMatrix(X)
+    preds = model.predict(dmatrix)
+    
+    prob_first_wins = preds[0]
     return 1 - prob_first_wins if swap_needed else prob_first_wins
+
+
 
 # ------------------------------
 # Main Simulation Function
 # ------------------------------
 
 def simulate_first_round_model(bracket_path='bracket.csv',
-                               team_stats_path='../pre_tourney_data/EnhancedTournamentStats.csv',
-                               kenpom_path='../pre_tourney_data/KenPom-Rankings-Updated.csv',
-                               model_path='../models/final_model_with_tempo2.pkl'):
+                               team_stats_path='../scripts/TeamSeasonAverages_with_SoS.csv',
+                               model_path='../models/xgb_model_basic.pkl'):
     """
     Simulates the first round of a tournament using your trained model.
     
     Parameters:
     - bracket_path: Path to CSV with bracket information (with columns: Seed, Team, Region)
-    - team_stats_path: Path to enhanced team stats CSV
-    - kenpom_path: Path to KenPom rankings CSV
+    - team_stats_path: Path to basic stats csv
     - model_path: Path to the trained model
     
     Returns:
     - DataFrame with matchup details and predicted win probabilities
     """
     model_version = model_path.split('/')[-1]
-    include_tempo = 'with_tempo' in model_path
+    include_tempo = 'with_tempo' in model_version  # for xgb_model_basic.pkl, this should be False
     
     # Load the trained model
     model = joblib.load(model_path)
@@ -140,16 +150,11 @@ def simulate_first_round_model(bracket_path='bracket.csv',
     latest_season = team_stats['Season'].max()
     team_stats = team_stats[team_stats['Season'] == latest_season].copy()
     
-    # Load latest KenPom rankings and merge
-    kenpom = pd.read_csv(kenpom_path)
-    latest_season_kp = kenpom['Season'].max()
-    kenpom = kenpom[kenpom['Season'] == latest_season_kp].copy()
-    kenpom = kenpom.rename(columns={'OrdinalRank': 'KenPom'})
-    team_stats = team_stats.merge(kenpom[['TeamID', 'KenPom']], on='TeamID', how='left')
+    # (KenPom merging removed since our basic model doesn't use KenPom rankings.)
     
     # Clean team names
     team_stats['TeamName'] = team_stats['TeamName'].apply(lambda x: x.strip())
-    
+
     # Load bracket file
     bracket = pd.read_csv(bracket_path)
     bracket['Seed'] = pd.to_numeric(bracket['Seed'])
@@ -203,21 +208,16 @@ def simulate_first_round_model(bracket_path='bracket.csv',
     return results_df
 
 # ------------------------------
-# Compare Multiple Models
+# Compare Models (Test Harness)
 # ------------------------------
 
 def compare_models(bracket_path='bracket.csv',
-                   team_stats_path='../pre_tourney_data/EnhancedTournamentStats.csv',
-                   kenpom_path='../pre_tourney_data/KenPom-Rankings-Updated.csv'):
+                   team_stats_path='../scripts/TeamSeasonAverages_with_SoS.csv'):
     """
-    Compare predictions from multiple models on the same bracket.
+    Compare predictions from the basic XGBoost model on the same bracket.
     """
     models = [
-        '../models/final_model.pkl',
-        '../models/final_model_py.pkl',
-        '../models/final_model_py2.pkl',
-        '../models/final_model_with_tempo2.pkl',
-        '../models/modelv3.pkl'
+        '../models/xgb_model_basic.pkl'
     ]
     
     all_results = {}
@@ -230,7 +230,6 @@ def compare_models(bracket_path='bracket.csv',
             results = simulate_first_round_model(
                 bracket_path=bracket_path,
                 team_stats_path=team_stats_path,
-                kenpom_path=kenpom_path,
                 model_path=model_path
             )
             

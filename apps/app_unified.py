@@ -26,9 +26,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Load custom CSS
-with open("../assets/style.css") as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+css_path = os.path.join(os.path.dirname(__file__), "..", "assets", "style.css")
+
+if os.path.exists(css_path):
+    with open(css_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+else:
+    st.warning("⚠️ Warning: `style.css` file not found. Skipping custom styles.")
+
 
 # Additional CSS for tables
 TABLE_CSS = """

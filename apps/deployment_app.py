@@ -8,13 +8,81 @@ import xgboost as xgb
 from PIL import Image, ImageDraw
 import base64
 from io import BytesIO
+import requests
+import tempfile
 
-import sys
-import os
-# Add the project root to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# Now use regular import
-from assets.basketball_logo import get_logo_html, create_basketball_logo
+# Base URL for GitHub raw content
+GITHUB_BASE_URL = "https://raw.githubusercontent.com/ankitdevalla/March_Madness_Pred/main"
+
+# ------------------------------
+# Utility Functions for Remote Resources
+# ------------------------------
+def load_remote_file(path):
+    """Load a file from GitHub repository"""
+    url = f"{GITHUB_BASE_URL}/{path}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        st.error(f"Failed to load file from {url}: {response.status_code}")
+        return None
+
+def load_remote_csv(path):
+    """Load a CSV file from GitHub repository"""
+    content = load_remote_file(path)
+    if content:
+        return pd.read_csv(BytesIO(content))
+    return None
+
+def load_remote_model(path):
+    """Load a model file from GitHub repository"""
+    content = load_remote_file(path)
+    if content:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+        
+        try:
+            model = joblib.load(tmp_path)
+            os.unlink(tmp_path)  # Delete the temporary file
+            return model
+        except Exception as e:
+            st.error(f"Error loading model: {str(e)}")
+            os.unlink(tmp_path)  # Delete the temporary file
+    return None
+
+def load_remote_css(path):
+    """Load CSS from GitHub repository"""
+    content = load_remote_file(path)
+    if content:
+        return content.decode('utf-8')
+    return ""
+
+# Import basketball logo function
+def create_basketball_logo():
+    """Create a simple basketball logo as base64 encoded image"""
+    # Create a new image with a transparent background
+    img = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(img)
+    
+    # Draw a basketball (orange circle with black lines)
+    draw.ellipse((5, 5, 95, 95), fill=(255, 125, 0, 255), outline=(0, 0, 0, 255), width=2)
+    
+    # Draw lines on the basketball
+    draw.arc((5, 5, 95, 95), 0, 180, fill=(0, 0, 0, 255), width=2)
+    draw.arc((5, 5, 95, 95), 180, 360, fill=(0, 0, 0, 255), width=2)
+    draw.arc((5, 30, 95, 70), 0, 180, fill=(0, 0, 0, 255), width=2)
+    draw.line((50, 5, 50, 95), fill=(0, 0, 0, 255), width=2)
+    
+    # Convert to base64
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode()
+
+def get_logo_html(size=30):
+    """Get HTML for the basketball logo"""
+    logo_base64 = create_basketball_logo()
+    return f'<img src="data:image/png;base64,{logo_base64}" width="{size}" height="{size}" style="vertical-align: middle;">'
 
 # ------------------------------
 # Page Configuration
@@ -27,8 +95,8 @@ st.set_page_config(
 )
 
 # Load custom CSS
-with open("../assets/style.css") as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+css_content = load_remote_css("assets/style.css")
+st.markdown(f'<style>{css_content}</style>', unsafe_allow_html=True)
 
 # Additional CSS for tables
 TABLE_CSS = """
@@ -94,7 +162,7 @@ Enter the teams and their seeds to get predictions and detailed team comparisons
 @st.cache_resource
 def load_basic_model():
     try:
-        model = joblib.load('../models/xgb_model_basic.pkl')
+        model = load_remote_model('models/xgb_model_basic.pkl')
         return model
     except Exception as e:
         st.error(f"Error loading basic model: {str(e)}")
@@ -103,7 +171,7 @@ def load_basic_model():
 @st.cache_resource
 def load_enhanced_model():
     try:
-        model = joblib.load('../models/final_model_py2.pkl')
+        model = load_remote_model('models/final_model_py2.pkl')
         return model
     except Exception as e:
         st.error(f"Error loading enhanced model: {str(e)}")
@@ -115,31 +183,37 @@ def load_enhanced_model():
 @st.cache_data
 def load_data():
     # Load team data
-    teams_df = pd.read_csv("../raw_data/MTeams.csv")
+    teams_df = load_remote_csv("raw_data/MTeams.csv")
     
     # Load basic stats
-    basic_stats = pd.read_csv("../pre_tourney_data/TeamSeasonAverages_with_SoS.csv")
+    basic_stats = load_remote_csv("pre_tourney_data/TeamSeasonAverages_with_SoS.csv")
     
     # Load enhanced stats
     try:
-        enhanced_stats = pd.read_csv("../pre_tourney_data/EnhancedTournamentStats.csv")
+        enhanced_stats = load_remote_csv("pre_tourney_data/EnhancedTournamentStats.csv")
     except:
-        enhanced_stats = basic_stats.copy()  # Fallback if enhanced stats not available
+        enhanced_stats = basic_stats.copy() if basic_stats is not None else None  # Fallback if enhanced stats not available
     
     # Load KenPom rankings
     try:
-        kenpom_rankings = pd.read_csv("../pre_tourney_data/KenPom-Rankings-Updated.csv")
-        kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
-        kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
+        kenpom_rankings = load_remote_csv("pre_tourney_data/KenPom-Rankings-Updated.csv")
+        if kenpom_rankings is not None:
+            kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
+            kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
     except:
         kenpom_rankings = None
+    
+    # Check if data was loaded successfully
+    if basic_stats is None:
+        st.error("Failed to load basic stats data")
+        return None, None, None, None, None, None, None
     
     # Get the most recent season data
     latest_season = basic_stats['Season'].max()
     current_basic_stats = basic_stats[basic_stats['Season'] == latest_season]
     
     # Get enhanced stats for current season if available
-    if 'Season' in enhanced_stats.columns:
+    if enhanced_stats is not None and 'Season' in enhanced_stats.columns:
         current_enhanced_stats = enhanced_stats[enhanced_stats['Season'] == latest_season]
     else:
         current_enhanced_stats = current_basic_stats.copy()
@@ -383,7 +457,12 @@ def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win
 # ------------------------------
 def main():
     # Load data
-    teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups = load_data()
+    data_result = load_data()
+    if data_result is None:
+        st.error("Failed to load necessary data. Please check your internet connection and try again.")
+        return
+    
+    teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups = data_result
     
     # Sidebar for model selection
     st.sidebar.header("Model Selection")
@@ -403,6 +482,10 @@ def main():
         model = load_enhanced_model()
         current_stats = current_enhanced_stats
         st.sidebar.info("Using enhanced model with KenPom and advanced metrics")
+    
+    if model is None:
+        st.error("Failed to load model. Please try again later.")
+        return
     
     # Team selection
     st.sidebar.header("Team Selection")
@@ -621,5 +704,26 @@ def main():
     """
     st.markdown(footer_html, unsafe_allow_html=True)
 
+# Add a status indicator for GitHub connection
+def check_github_connection():
+    """Check if we can connect to GitHub"""
+    try:
+        response = requests.head(GITHUB_BASE_URL)
+        return response.status_code == 200
+    except:
+        return False
+
+# Add a sidebar status indicator
+def show_connection_status():
+    if check_github_connection():
+        st.sidebar.success("✅ Connected to GitHub repository")
+    else:
+        st.sidebar.error("❌ Cannot connect to GitHub repository")
+        st.sidebar.info("Please check your internet connection or repository access")
+
 if __name__ == "__main__":
-    main() 
+    # Show connection status in sidebar
+    show_connection_status()
+    
+    # Run the main app
+    main()

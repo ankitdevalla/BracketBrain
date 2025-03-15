@@ -100,7 +100,7 @@ Enter the teams and their seeds to get predictions and detailed team comparisons
 @st.cache_resource
 def load_basic_model():
     try:
-        model = joblib.load('../models/xgb_model_basic.pkl')
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_basic.pkl")))
         return model
     except Exception as e:
         st.error(f"Error loading basic model: {str(e)}")
@@ -109,7 +109,7 @@ def load_basic_model():
 @st.cache_resource
 def load_enhanced_model():
     try:
-        model = joblib.load('../models/final_model_py2.pkl')
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "final_model_py2.pkl")))
         return model
     except Exception as e:
         st.error(f"Error loading enhanced model: {str(e)}")
@@ -123,31 +123,40 @@ def load_data():
     # Load team data
     csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "raw_data", "MTeams.csv"))
 
-    # Debugging: Check if the file exists
-    st.write(f"Checking CSV Path: {csv_path}")
-    st.write(f"File Exists: {os.path.exists(csv_path)}")
-
     # Load the CSV if it exists
     if os.path.exists(csv_path):
         teams_df = pd.read_csv(csv_path)
     else:
         st.error("❌ `MTeams.csv` not found! Please check file path and deployment.")
-    
-    # Load basic stats
-    basic_stats = pd.read_csv("../pre_tourney_data/TeamSeasonAverages_with_SoS.csv")
+
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "TeamSeasonAverages_with_SoS.csv"))
+
+    # Load the CSV if it exists
+    if os.path.exists(csv_path):
+        basic_stats = pd.read_csv(csv_path)
+    else:
+        st.error("❌ `TeamSeasonAverages_with_SoS.csv` not found! Please check file path and deployment.")
+
     
     # Load enhanced stats
-    try:
-        enhanced_stats = pd.read_csv("../pre_tourney_data/EnhancedTournamentStats.csv")
-    except:
-        enhanced_stats = basic_stats.copy()  # Fallback if enhanced stats not available
-    
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "EnhancedTournamentStats.csv"))
+
+    # Load the CSV if it exists
+    if os.path.exists(csv_path):
+        enhanced_stats = pd.read_csv(csv_path)
+    else:
+        st.error("❌ `EnhancedTournamentStats.csv` not found! Please check file path and deployment.")
+            
     # Load KenPom rankings
-    try:
-        kenpom_rankings = pd.read_csv("../pre_tourney_data/KenPom-Rankings-Updated.csv")
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "KenPom-Rankings-Updated.csv"))
+
+    # Load the CSV if it exists
+    if os.path.exists(csv_path):
+        kenpom_rankings = pd.read_csv(csv_path)
         kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
         kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
-    except:
+    else:
+        st.error("❌ `KenPom-Rankings-Updated.csv` not found! Please check file path and deployment.")
         kenpom_rankings = None
     
     # Get the most recent season data

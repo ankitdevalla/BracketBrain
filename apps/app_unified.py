@@ -129,7 +129,7 @@ def load_data():
     else:
         st.error("❌ `MTeams.csv` not found! Please check file path and deployment.")
 
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "TeamSeasonAverages_with_SoS.csv"))
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "TeamSeasonAverages_with_SoS.csv"))
 
     # Load the CSV if it exists
     if os.path.exists(csv_path):
@@ -139,7 +139,7 @@ def load_data():
 
     
     # Load enhanced stats
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "EnhancedTournamentStats.csv"))
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "EnhancedTournamentStats.csv"))
 
     # Load the CSV if it exists
     if os.path.exists(csv_path):
@@ -148,7 +148,7 @@ def load_data():
         st.error("❌ `EnhancedTournamentStats.csv` not found! Please check file path and deployment.")
             
     # Load KenPom rankings
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre-tourney_data", "KenPom-Rankings-Updated.csv"))
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "KenPom-Rankings-Updated.csv"))
 
     # Load the CSV if it exists
     if os.path.exists(csv_path):

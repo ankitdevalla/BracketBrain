@@ -121,7 +121,17 @@ def load_enhanced_model():
 @st.cache_data
 def load_data():
     # Load team data
-    teams_df = pd.read_csv("../raw_data/MTeams.csv")
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "raw_data", "MTeams.csv"))
+
+    # Debugging: Check if the file exists
+    st.write(f"Checking CSV Path: {csv_path}")
+    st.write(f"File Exists: {os.path.exists(csv_path)}")
+
+    # Load the CSV if it exists
+    if os.path.exists(csv_path):
+        teams_df = pd.read_csv(csv_path)
+    else:
+        st.error("❌ `MTeams.csv` not found! Please check file path and deployment.")
     
     # Load basic stats
     basic_stats = pd.read_csv("../pre_tourney_data/TeamSeasonAverages_with_SoS.csv")

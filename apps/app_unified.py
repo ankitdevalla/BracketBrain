@@ -8,6 +8,8 @@ import xgboost as xgb
 from PIL import Image, ImageDraw
 import base64
 from io import BytesIO
+import json
+import re
 
 import sys
 import os
@@ -190,6 +192,40 @@ def load_data():
     }
     
     return teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups
+
+# ------------------------------
+# Team Summary Functions
+# ------------------------------
+@st.cache_data
+def load_team_summaries():
+    """Load team summaries from JSON file"""
+    try:
+        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "team_sum_clean.json")), "r") as f:
+            team_summaries = json.load(f)
+        return team_summaries
+    except Exception as e:
+        st.warning(f"Could not load team summaries: {str(e)}")
+        return {}
+
+def display_team_comparison_summaries(team1_id, team1_name, team2_id, team2_name):
+    """Display summaries for both teams side by side"""
+    summaries = load_team_summaries()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"### {team1_name}")
+        if str(team1_id) in summaries:
+            st.write(summaries[str(team1_id)])
+        else:
+            st.info(f"No detailed profile available for {team1_name}")
+    
+    with col2:
+        st.markdown(f"### {team2_name}")
+        if str(team2_id) in summaries:
+            st.write(summaries[str(team2_id)])
+        else:
+            st.info(f"No detailed profile available for {team2_name}")
 
 # ------------------------------
 # Feature Creation Functions
@@ -447,6 +483,13 @@ def main():
     team1_stats = current_stats[current_stats['TeamName'] == team1_name].iloc[0]
     team2_stats = current_stats[current_stats['TeamName'] == team2_name].iloc[0]
     
+    # Get team IDs for summaries
+    team1_id = team1_stats['TeamID']
+    team2_id = team2_stats['TeamID']
+    
+    # Create a placeholder for team summaries
+    team_summaries_placeholder = st.empty()
+    
     # Button to make prediction
     if st.sidebar.button("Predict Winner"):
         if model is None:
@@ -514,14 +557,16 @@ def main():
                 st.markdown("---")
                 st.subheader("Upset Potential")
                 
-                # Show upset alert if lower seed has >25% chance to win
-                if upset_prob > 0.25:
+                # Show upset alert only if lower seed has >30% chance to win
+                if upset_prob > 0.3:
                     if upset_prob > 0.5:
                         st.warning(f"⚠️ Major Upset Alert: The model favors {lower_seed_team} (#{lower_seed} seed) to win against {higher_seed_team} (#{higher_seed} seed)!")
                     else:
-                        st.warning(f"⚠️ Upset Alert: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
+                        st.warning(f"⚠️ Potential Upset: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
+                elif higher_seed_win_prob > 0.85:
+                    st.info(f"🔒 Lock Alert: {higher_seed_team} (#{higher_seed} seed) is heavily favored with a {higher_seed_win_prob*100:.1f}% chance to win")
                 else:
-                    st.info(f"🔒 {higher_seed_team} (#{higher_seed} seed) is strongly favored with a {higher_seed_win_prob*100:.1f}% chance to win")
+                    st.info(f"{higher_seed_team} (#{higher_seed} seed) is favored with a {higher_seed_win_prob*100:.1f}% chance to win")
         
         with col2:
             st.subheader("Key Matchup Factors")
@@ -554,6 +599,11 @@ def main():
             
             # Display tempo analysis
             display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability)
+        
+        # Now display team summaries after prediction
+        with team_summaries_placeholder:
+            st.header("Team Profiles")
+            display_team_comparison_summaries(team1_id, team1_name, team2_id, team2_name)
     
     # Display team comparisons
     st.header("Team Comparison")

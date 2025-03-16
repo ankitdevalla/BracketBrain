@@ -102,10 +102,19 @@ Enter the teams and their seeds to get predictions and detailed team comparisons
 @st.cache_resource
 def load_basic_model():
     try:
-        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_basic.pkl")))
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_no_seeds.pkl")))
         return model
     except Exception as e:
         st.error(f"Error loading basic model: {str(e)}")
+        return None
+
+@st.cache_resource
+def load_basic_kenpom_model():
+    try:
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_no_seeds_kenpom.pkl")))
+        return model
+    except Exception as e:
+        st.error(f"Error loading basic model with KenPom: {str(e)}")
         return None
 
 @st.cache_resource
@@ -231,7 +240,7 @@ def display_team_comparison_summaries(team1_id, team1_name, team2_id, team2_name
 # Feature Creation Functions
 # ------------------------------
 def create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed):
-    """Create features for the basic XGBoost model"""
+    """Create features for the basic XGBoost model that doesn't use seeds"""
     season_cols = ['WinPct', 'Avg_Score', 'Avg_FGM', 'Avg_FGA', 'Avg_FGM3', 'Avg_FGA3',
                    'Avg_FTM', 'Avg_FTA', 'Avg_OR', 'Avg_DR', 'Avg_Ast', 'Avg_TO',
                    'Avg_Stl', 'Avg_Blk', 'Avg_PF', 'Avg_Opp_WinPct', 'Last30_WinRatio']
@@ -240,8 +249,37 @@ def create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed):
     for col in season_cols:
         features[f"{col}_diff"] = team1_stats[col] - team2_stats[col]
     
-    # Add seed difference
-    features['Seed_diff'] = team1_seed - team2_seed
+    # Create SoS emphasis features
+    features['SoS_squared_diff'] = features['Avg_Opp_WinPct_diff'] ** 2 * np.sign(features['Avg_Opp_WinPct_diff'])
+    features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
+    features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
+    
+    return pd.DataFrame([features])
+
+def create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed):
+    """Create features for the basic XGBoost model with KenPom that doesn't use seeds"""
+    # Start with the basic features
+    season_cols = ['WinPct', 'Avg_Score', 'Avg_FGM', 'Avg_FGA', 'Avg_FGM3', 'Avg_FGA3',
+                   'Avg_FTM', 'Avg_FTA', 'Avg_OR', 'Avg_DR', 'Avg_Ast', 'Avg_TO',
+                   'Avg_Stl', 'Avg_Blk', 'Avg_PF', 'Avg_Opp_WinPct', 'Last30_WinRatio']
+    
+    features = {}
+    for col in season_cols:
+        features[f"{col}_diff"] = team1_stats[col] - team2_stats[col]
+    
+    # Add KenPom difference (note: lower rank is better, so we subtract Team1 from Team2)
+    if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
+        features['KenPom_diff'] = team2_stats['KenPom'] - team1_stats['KenPom']
+    else:
+        features['KenPom_diff'] = 0
+    
+    # Create SoS emphasis features
+    features['SoS_squared_diff'] = features['Avg_Opp_WinPct_diff'] ** 2 * np.sign(features['Avg_Opp_WinPct_diff'])
+    features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
+    features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
+    
+    # Add KenPom-SoS interaction feature
+    features['KenPom_SoS_interaction'] = features['KenPom_diff'] * features['Avg_Opp_WinPct_diff']
     
     return pd.DataFrame([features])
 
@@ -280,22 +318,18 @@ def create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed):
 # Prediction Functions
 # ------------------------------
 def predict_with_basic_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
-    """Make prediction using the basic XGBoost model"""
-    # Check if we need to swap teams (basic model expects better seed first)
-    swap_needed = team1_seed > team2_seed
-    
-    if swap_needed:
-        # Swap teams so better seed is first
-        X = create_basic_features(team2_stats, team1_stats, team2_seed, team1_seed)
-        dmatrix = xgb.DMatrix(X)
-        prob = model.predict(dmatrix)[0]
-        # Return probability for team1 winning (need to flip result)
-        return 1 - prob
-    else:
-        # No swap needed
-        X = create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed)
-        dmatrix = xgb.DMatrix(X)
-        return model.predict(dmatrix)[0]
+    """Make prediction using the basic XGBoost model that doesn't use seeds"""
+    # Create features - no need to swap teams since seed is not used in prediction
+    X = create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed)
+    dmatrix = xgb.DMatrix(X)
+    return model.predict(dmatrix)[0]
+
+def predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
+    """Make prediction using the basic XGBoost model with KenPom that doesn't use seeds"""
+    # Create features - no need to swap teams since seed is not used in prediction
+    X = create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed)
+    dmatrix = xgb.DMatrix(X)
+    return model.predict(dmatrix)[0]
 
 def predict_with_enhanced_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
     """Make prediction using the enhanced model"""
@@ -446,20 +480,38 @@ def main():
     # Load data
     teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups = load_data()
     
+    # Add KenPom data to basic stats for the KenPom model
+    if 'KenPom' not in current_basic_stats.columns and 'KenPom' in current_enhanced_stats.columns:
+        current_basic_stats_with_kenpom = current_basic_stats.copy()
+        kenpom_data = current_enhanced_stats[['TeamID', 'KenPom']].drop_duplicates()
+        current_basic_stats_with_kenpom = current_basic_stats_with_kenpom.merge(
+            kenpom_data, on='TeamID', how='left'
+        )
+        # Fill NaN values in KenPom column
+        current_basic_stats_with_kenpom['KenPom'] = current_basic_stats_with_kenpom['KenPom'].fillna(0)
+    else:
+        current_basic_stats_with_kenpom = current_basic_stats.copy()
+        if 'KenPom' not in current_basic_stats_with_kenpom.columns:
+            current_basic_stats_with_kenpom['KenPom'] = 0
+    
     # Sidebar for model selection
     st.sidebar.header("Model Selection")
     model_choice = st.sidebar.selectbox(
         "Select Prediction Model",
-        ["Basic Model", "Enhanced Model"],
+        ["Basic Model", "Basic Model + KenPom", "Enhanced Model"],
         index=0,  # Default to Basic Model
-        help="Basic Model uses season averages. Enhanced Model includes KenPom and advanced metrics."
+        help="Basic Model uses season averages and strength of schedule. Basic Model + KenPom adds KenPom rankings. Enhanced Model includes additional advanced metrics."
     )
     
     # Load the selected model
     if model_choice == "Basic Model":
         model = load_basic_model()
         current_stats = current_basic_stats
-        st.sidebar.info("Using basic model with season averages")
+        st.sidebar.info("Using basic model with season averages and strength of schedule")
+    elif model_choice == "Basic Model + KenPom":
+        model = load_basic_kenpom_model()
+        current_stats = current_basic_stats_with_kenpom
+        st.sidebar.info("Using basic model with season averages, strength of schedule, and KenPom rankings")
     else:
         model = load_enhanced_model()
         current_stats = current_enhanced_stats
@@ -499,6 +551,8 @@ def main():
         # Make prediction based on selected model
         if model_choice == "Basic Model":
             win_probability = predict_with_basic_model(model, team1_stats, team2_stats, team1_seed, team2_seed)
+        elif model_choice == "Basic Model + KenPom":
+            win_probability = predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed, team2_seed)
         else:
             win_probability = predict_with_enhanced_model(model, team1_stats, team2_stats, team1_seed, team2_seed)
         
@@ -574,6 +628,8 @@ def main():
             # Display feature differences based on model
             if model_choice == "Basic Model":
                 features = create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed)
+            elif model_choice == "Basic Model + KenPom":
+                features = create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed)
             else:
                 features = create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed)
             
@@ -592,6 +648,14 @@ def main():
                     st.write(f"• Seed Difference: {value:.0f}")
                 elif feature == 'KenPomDiff':
                     st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_squared_diff':
+                    st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_WinPct_interaction':
+                    st.write(f"• SoS-adjusted Win %: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_Last30_interaction':
+                    st.write(f"• SoS-adjusted Recent Form: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'Avg_Opp_WinPct_diff':
+                    st.write(f"• Strength of Schedule: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
                 else:
                     feature_name = feature.replace('Diff_', '').replace('_diff', '')
                     team_advantage = team1_name if value > 0 else team2_name
@@ -618,6 +682,13 @@ def main():
             overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
             overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
             lower_is_better = ['Avg_Opp_WinPct']
+        elif model_choice == "Basic Model + KenPom":
+            overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
+            overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
+            if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
+                overview_metrics.append('KenPom')
+                overview_names.append('KenPom Ranking')
+            lower_is_better = ['Avg_Opp_WinPct', 'KenPom']
         else:
             overview_metrics = ['KenPom', 'AdjO', 'AdjD', 'AdjNetRtg', 'Expected Win%', 'SOS_NetRtg', 'Last10Win%']
             overview_names = ['KenPom Rating', 'Adjusted Offensive Rating', 'Adjusted Defensive Rating', 
@@ -630,7 +701,7 @@ def main():
     
     with tab2:
         # Offensive metrics
-        if model_choice == "Basic Model":
+        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
             offensive_metrics = ['Avg_Score', 'Avg_FGM', 'Avg_FGA', 'Avg_FGM3', 'Avg_FGA3', 'Avg_FTM', 'Avg_FTA', 'Avg_OR', 'Avg_Ast']
             offensive_names = ['Points per Game', 'Field Goals Made', 'Field Goals Attempted', '3-Point Field Goals Made',
                               '3-Point Field Goals Attempted', 'Free Throws Made', 'Free Throws Attempted', 
@@ -646,7 +717,7 @@ def main():
     
     with tab3:
         # Defensive metrics
-        if model_choice == "Basic Model":
+        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
             defensive_metrics = ['Avg_DR', 'Avg_Stl', 'Avg_Blk']
             defensive_names = ['Defensive Rebounds', 'Steals', 'Blocks']
             lower_is_better = []
@@ -661,7 +732,7 @@ def main():
     
     with tab4:
         # Performance metrics
-        if model_choice == "Basic Model":
+        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
             performance_metrics = ['Avg_TO', 'Avg_PF']
             performance_names = ['Turnovers', 'Personal Fouls']
             lower_is_better = ['Avg_TO', 'Avg_PF']
@@ -686,6 +757,7 @@ def main():
             <div class="footer-links">
                 <a href="https://ankitdevalla.com" target="_blank">About Me</a>
                 <a href="https://github.com/ankitdevalla/March_Madness_Pred" target="_blank">GitHub</a>
+                <a href="https://givebutter.com/LobMTv" target="_blank" style="color: #ffc107; font-weight: bold;">Support BracketBrain!</a>
             </div>
             <div class="footer-contact">
                 <div>ankitdevalla.dev@gmail.com</div>

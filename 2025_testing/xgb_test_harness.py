@@ -46,7 +46,10 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed,
     # Continue with base features
     features['Avg_Opp_WinPct_diff'] = team1_stats['Avg_Opp_WinPct'] - team2_stats['Avg_Opp_WinPct']
     features['Last30_WinRatio_diff'] = team1_stats['Last30_WinRatio'] - team2_stats['Last30_WinRatio']
-    features['Seed_diff'] = team1_seed - team2_seed
+    
+    # Add seed difference for models that use it
+    if model_type != 'no_seeds' and model_type != 'no_seeds_kenpom':
+        features['Seed_diff'] = team1_seed - team2_seed
     
     # If using advanced model, add remaining advanced features
     if model_type == 'advanced':
@@ -107,7 +110,7 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed,
     # If using bart_simplified model, add Barthag and Exp features
     elif model_type == 'bart_simplified':
         # Add Barthag and Exp features
-        # features['Barthag_diff'] = team1_barthag - team2_barthag
+        features['Barthag_diff'] = team1_barthag - team2_barthag
         features['Exp_diff'] = team1_exp - team2_exp
         
         # Add individual team features
@@ -117,6 +120,29 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed,
         features['Team2_Exp'] = team2_exp
         features['Team1_Seed'] = team1_seed
         features['Team2_Seed'] = team2_seed
+    
+    # If using no_seeds model, add SoS emphasis features
+    elif model_type == 'no_seeds':
+        # Create additional SoS features to emphasize strength of schedule
+        features['SoS_squared_diff'] = features['Avg_Opp_WinPct_diff'] ** 2 * np.sign(features['Avg_Opp_WinPct_diff'])
+        features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
+        features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
+    
+    # If using no_seeds_kenpom model, add SoS emphasis features and KenPom
+    elif model_type == 'no_seeds_kenpom':
+        # Create additional SoS features to emphasize strength of schedule
+        features['SoS_squared_diff'] = features['Avg_Opp_WinPct_diff'] ** 2 * np.sign(features['Avg_Opp_WinPct_diff'])
+        features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
+        features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
+        
+        # Add KenPom ranking difference (note: lower rank is better, so we subtract Team1 from Team2)
+        if team1_kenpom is not None and team2_kenpom is not None:
+            features['KenPom_diff'] = team2_kenpom - team1_kenpom
+        else:
+            features['KenPom_diff'] = 0
+            
+        # Add KenPom-SoS interaction feature
+        features['KenPom_SoS_interaction'] = features['KenPom_diff'] * features['Avg_Opp_WinPct_diff']
     
     # Create DataFrame with features in the exact order expected by the model
     if model_type == 'basic':
@@ -143,12 +169,32 @@ def create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed,
             'Team1_Reb_Rate', 'Team2_Reb_Rate'
         ]
     elif model_type == 'bart_simplified':
-        # Order for bart_simplified model - EXACTLY as specified in the user query
+        # Order for bart_simplified model
         feature_order = [
-            'Exp_diff', 'WinPct_diff', 'Avg_Score_diff', 'Avg_FGM_diff', 
+            'Barthag_diff', 'Exp_diff', 'WinPct_diff', 'Avg_Score_diff', 'Avg_FGM_diff', 
             'Avg_FGA_diff', 'Avg_FGM3_diff', 'Avg_FGA3_diff', 'Avg_FTM_diff', 'Avg_FTA_diff', 
             'Avg_OR_diff', 'Avg_DR_diff', 'Avg_Ast_diff', 'Avg_TO_diff', 'Avg_Stl_diff', 
             'Avg_Blk_diff', 'Avg_PF_diff', 'Avg_Opp_WinPct_diff', 'Last30_WinRatio_diff', 'Seed_diff'
+        ]
+    elif model_type == 'no_seeds':
+        # Order for no_seeds model
+        feature_order = [
+            'WinPct_diff', 'Avg_Score_diff', 'Avg_FGM_diff', 'Avg_FGA_diff', 
+            'Avg_FGM3_diff', 'Avg_FGA3_diff', 'Avg_FTM_diff', 'Avg_FTA_diff', 
+            'Avg_OR_diff', 'Avg_DR_diff', 'Avg_Ast_diff', 'Avg_TO_diff', 
+            'Avg_Stl_diff', 'Avg_Blk_diff', 'Avg_PF_diff', 'Avg_Opp_WinPct_diff', 
+            'Last30_WinRatio_diff', 'SoS_squared_diff', 'SoS_WinPct_interaction', 
+            'SoS_Last30_interaction'
+        ]
+    elif model_type == 'no_seeds_kenpom':
+        # Order for no_seeds_kenpom model
+        feature_order = [
+            'WinPct_diff', 'Avg_Score_diff', 'Avg_FGM_diff', 'Avg_FGA_diff', 
+            'Avg_FGM3_diff', 'Avg_FGA3_diff', 'Avg_FTM_diff', 'Avg_FTA_diff', 
+            'Avg_OR_diff', 'Avg_DR_diff', 'Avg_Ast_diff', 'Avg_TO_diff', 
+            'Avg_Stl_diff', 'Avg_Blk_diff', 'Avg_PF_diff', 'Avg_Opp_WinPct_diff', 
+            'Last30_WinRatio_diff', 'KenPom_diff', 'SoS_squared_diff', 'SoS_WinPct_interaction', 
+            'SoS_Last30_interaction', 'KenPom_SoS_interaction'
         ]
     
     # Create DataFrame with ordered features
@@ -212,6 +258,10 @@ def simulate_first_round_model(bracket_path='bracket.csv',
         model_type = 'advanced'
     elif 'bart_model_simplified' in model_path:
         model_type = 'bart_simplified'
+    elif 'no_seeds_kenpom' in model_path:
+        model_type = 'no_seeds_kenpom'
+    elif 'no_seeds' in model_path:
+        model_type = 'no_seeds'
     
     print(f"Using model type: {model_type}")
     
@@ -223,9 +273,9 @@ def simulate_first_round_model(bracket_path='bracket.csv',
     latest_season = team_stats['Season'].max()
     team_stats = team_stats[team_stats['Season'] == latest_season].copy()
     
-    # Load KenPom rankings if using advanced model
+    # Load KenPom rankings if using advanced model or no_seeds_kenpom model
     kenpom_rankings = None
-    if model_type == 'advanced' and os.path.exists(kenpom_path):
+    if (model_type == 'advanced' or model_type == 'no_seeds_kenpom') and os.path.exists(kenpom_path):
         kenpom_df = pd.read_csv(kenpom_path)
         kenpom_latest = kenpom_df[kenpom_df['Season'] == latest_season]
         kenpom_rankings = dict(zip(kenpom_latest['TeamID'], kenpom_latest['OrdinalRank']))
@@ -343,7 +393,9 @@ def compare_models(bracket_path='bracket.csv',
     models = [
         '../models/xgb_model_basic.pkl',
         '../models/xgb_model_advanced.pkl',
-        '../models/bart_model_simplified.pkl'
+        '../models/bart_model_simplified.pkl',
+        '../models/xgb_model_no_seeds.pkl',
+        '../models/xgb_model_no_seeds_kenpom.pkl'  # Add the new model
     ]
     
     all_results = {}

@@ -519,7 +519,7 @@ print(sample_upsets)
 import joblib
 
 # Save the model to a file
-joblib.dump(best_model, 'final_model_py2.pkl')
+joblib.dump(best_model, '../models/final_model_py2.pkl')
 
 
 

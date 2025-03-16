@@ -1,8 +1,0 @@
-Recommended Features for Model Training:
-Barthag_diff
-Seed_Barthag_diff
-Team1_Barthag
-Team2_Seed
-Exp_Barthag_diff
-Team2_Exp
-Team1_Exp_Barthag

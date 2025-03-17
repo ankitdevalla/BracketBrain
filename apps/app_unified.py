@@ -318,7 +318,7 @@ def create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed):
     
     # Add KenPom difference if available
     if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
-        features['KenPomDiff'] = team1_stats['KenPom'] - team2_stats['KenPom']
+        features['KenPomDiff'] = team2_stats['KenPom'] - team1_stats['KenPom']
     
     # Add enhanced stats differences
     enhanced_features = [
@@ -815,6 +815,7 @@ def main():
                 if feature in ['SeedDiff', 'Seed_diff']:
                     st.write(f"• Seed Difference: {value:.0f}")
                 elif feature == 'KenPomDiff':
+                    # st.write(f"KenPomDiff: {value}")
                     st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
                 elif feature == 'SoS_squared_diff':
                     st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")

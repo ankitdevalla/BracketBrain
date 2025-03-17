@@ -1043,7 +1043,7 @@ def main():
                     <a href="https://givebutter.com/LobMTv" target="_blank" style="color: #ffc107; font-weight: bold;">Support BracketBrain!</a>
                 </div>
                 <div class="footer-contact">
-                    <div>ankitdevalla.dev@gmail.com</div>
+                    <div>ankitdevalla.dev@gmail.com | lizach739@gmail.com</div>
                     <div>&copy; {datetime.date.today().year} BracketBrain</div>
                 </div>
             </div>

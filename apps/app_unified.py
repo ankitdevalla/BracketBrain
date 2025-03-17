@@ -345,17 +345,40 @@ def create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed):
 # ------------------------------
 def predict_with_basic_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
     """Make prediction using the basic XGBoost model that doesn't use seeds"""
-    # Create features - no need to swap teams since seed is not used in prediction
+    # Create features
     X = create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed)
     dmatrix = xgb.DMatrix(X)
-    return model.predict(dmatrix)[0]
+    team1_win_prob = model.predict(dmatrix)[0]
+    
+    # Create features with teams swapped to ensure symmetry
+    X_swapped = create_basic_features(team2_stats, team1_stats, team2_seed, team1_seed)
+    dmatrix_swapped = xgb.DMatrix(X_swapped)
+    team2_win_prob = model.predict(dmatrix_swapped)[0]
+    
+    # Average the two predictions (1 - team2_win_prob gives team1's win probability from swapped perspective)
+    final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
+    
+    print(f"Team1 win prob: {team1_win_prob}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob}")
+    
+    return final_team1_win_prob
 
 def predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
     """Make prediction using the basic XGBoost model with KenPom that doesn't use seeds"""
-    # Create features - no need to swap teams since seed is not used in prediction
+    # Create features
     X = create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed)
     dmatrix = xgb.DMatrix(X)
-    return model.predict(dmatrix)[0]
+    team1_win_prob = model.predict(dmatrix)[0]
+    
+    # Create features with teams swapped to ensure symmetry
+    X_swapped = create_basic_kenpom_features(team2_stats, team1_stats, team2_seed, team1_seed)
+    dmatrix_swapped = xgb.DMatrix(X_swapped)
+    team2_win_prob = model.predict(dmatrix_swapped)[0]
+    
+    # Average the two predictions
+    final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
+    
+    return final_team1_win_prob
 
 def predict_with_enhanced_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
     """Make prediction using the enhanced model"""

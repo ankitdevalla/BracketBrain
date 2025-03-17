@@ -244,7 +244,7 @@ def predict_matchup(model, team1_stats, team2_stats, team1_seed, team2_seed,
 # Main Simulation Function
 # ------------------------------
 
-def simulate_first_round_model(bracket_path='bracket.csv',
+def simulate_first_round_model(bracket_path='march_madness_2025.csv',
                                team_stats_path='../pre_tourney_data/TeamSeasonAverages_with_SoS.csv',
                                kenpom_path='../pre_tourney_data/KenPom-Rankings-Updated.csv',
                                trank_path='../processed_data/trank_simplified.csv',
@@ -383,7 +383,7 @@ def simulate_first_round_model(bracket_path='bracket.csv',
 # Compare Models (Test Harness)
 # ------------------------------
 
-def compare_models(bracket_path='bracket.csv',
+def compare_models(bracket_path='march_madness_2025.csv',
                    team_stats_path='../pre_tourney_data/TeamSeasonAverages_with_SoS.csv',
                    kenpom_path='../pre_tourney_data/KenPom-Rankings-Updated.csv',
                    trank_path='../processed_data/trank_simplified.csv'):

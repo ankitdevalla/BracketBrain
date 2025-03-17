@@ -358,8 +358,11 @@ def predict_with_basic_model(model, team1_stats, team2_stats, team1_seed, team2_
     # Average the two predictions (1 - team2_win_prob gives team1's win probability from swapped perspective)
     final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
     
-    print(f"Team1 win prob: {team1_win_prob}")
-    print(f"1 - Team2 win prob: {1 - team2_win_prob}")
+    # For debugging
+    print(f"Team1 win prob: {team1_win_prob:.4f}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob:.4f}")
+    print(f"Difference: {abs(team1_win_prob - (1 - team2_win_prob)):.4f}")
+    print(f"Symmetrized prob: {final_team1_win_prob:.4f}")
     
     return final_team1_win_prob
 
@@ -374,6 +377,11 @@ def predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed,
     X_swapped = create_basic_kenpom_features(team2_stats, team1_stats, team2_seed, team1_seed)
     dmatrix_swapped = xgb.DMatrix(X_swapped)
     team2_win_prob = model.predict(dmatrix_swapped)[0]
+    
+    # For debugging
+    print(f"Team1 win prob: {team1_win_prob:.4f}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob:.4f}")
+    print(f"Difference: {abs(team1_win_prob - (1 - team2_win_prob)):.4f}")
     
     # Average the two predictions
     final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2

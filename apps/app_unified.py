@@ -540,6 +540,9 @@ def main():
     # Load data
     teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups = load_data()
     
+    # Load bracket data
+    bracket_data = load_bracket_data()
+    
     # Add KenPom data to basic stats for the KenPom model
     if 'KenPom' not in current_basic_stats.columns and 'KenPom' in current_enhanced_stats.columns:
         current_basic_stats_with_kenpom = current_basic_stats.copy()
@@ -585,19 +588,37 @@ def main():
     
     # Team 1 selection
     team1_name = st.sidebar.selectbox("Select Team 1", current_teams, index=0)
-    team1_seed = st.sidebar.number_input("Team 1 Seed", min_value=1, max_value=16, value=1, step=1)
-    
-    # Team 2 selection
-    team2_name = st.sidebar.selectbox("Select Team 2", current_teams, index=1)
-    team2_seed = st.sidebar.number_input("Team 2 Seed", min_value=1, max_value=16, value=8, step=1)
     
     # Get team stats
     team1_stats = current_stats[current_stats['TeamName'] == team1_name].iloc[0]
-    team2_stats = current_stats[current_stats['TeamName'] == team2_name].iloc[0]
-    
-    # Get team IDs for summaries
     team1_id = team1_stats['TeamID']
+    
+    # Check if team is in the bracket and get its seed
+    team1_seed_locked = False
+    if str(team1_id) in bracket_data:
+        team1_seed = bracket_data[str(team1_id)]["seed"]
+        team1_region = bracket_data[str(team1_id)]["region"]
+        st.sidebar.info(f"{team1_name} is #{team1_seed} seed in the {team1_region} region")
+        team1_seed_locked = True
+    else:
+        team1_seed = st.sidebar.number_input("Team 1 Seed", min_value=1, max_value=16, value=1, step=1)
+    
+    # Team 2 selection
+    team2_name = st.sidebar.selectbox("Select Team 2", current_teams, index=1)
+    
+    # Get team stats
+    team2_stats = current_stats[current_stats['TeamName'] == team2_name].iloc[0]
     team2_id = team2_stats['TeamID']
+    
+    # Check if team is in the bracket and get its seed
+    team2_seed_locked = False
+    if str(team2_id) in bracket_data:
+        team2_seed = bracket_data[str(team2_id)]["seed"]
+        team2_region = bracket_data[str(team2_id)]["region"]
+        st.sidebar.info(f"{team2_name} is #{team2_seed} seed in the {team2_region} region")
+        team2_seed_locked = True
+    else:
+        team2_seed = st.sidebar.number_input("Team 2 Seed", min_value=1, max_value=16, value=8, step=1)
     
     # Create a placeholder for team summaries
     team_summaries_placeholder = st.empty()
@@ -1007,6 +1028,18 @@ def main():
         """
     
     st.markdown(footer_html, unsafe_allow_html=True)
+
+# Add this function to load the bracket data
+@st.cache_data
+def load_bracket_data():
+    """Load the 2025 NCAA Tournament bracket data"""
+    try:
+        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "2025_Bracket.json")), "r") as f:
+            bracket_data = json.load(f)
+        return bracket_data
+    except Exception as e:
+        st.warning(f"Could not load bracket data: {str(e)}")
+        return {}
 
 if __name__ == "__main__":
     main() 

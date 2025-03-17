@@ -7,6 +7,7 @@ body {
     min-height: 100vh;
     margin: 0;
     padding-bottom: 80px !important;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .main {
@@ -48,6 +49,7 @@ body {
 .comparison-table {
     width: 100% !important;
     max-width: 100% !important;
+    overflow-x: auto; /* Allow horizontal scrolling for tables */
 }
 
 .comparison-table table {
@@ -59,6 +61,8 @@ body {
 .comparison-table th, .comparison-table td {
     padding: 8px 12px;
     text-align: center;
+    word-wrap: break-word; /* Allow text to wrap */
+    overflow-wrap: break-word;
 }
 
 .comparison-table th:first-child, .comparison-table td:first-child {
@@ -141,15 +145,42 @@ body {
     font-size: 13px;
 }
 
-/* Make footer responsive */
+/* Mobile-specific styles */
 @media (max-width: 768px) {
+    /* Header adjustments */
     .header {
         flex-direction: column;
         text-align: center;
     }
     
     .header-logo {
+        flex-direction: column;
         margin-bottom: 10px;
+    }
+    
+    .header-logo img {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .header-title {
+        font-size: 24px;
+    }
+    
+    .header-subtitle {
+        font-size: 14px;
+    }
+    
+    /* Table adjustments */
+    .comparison-table th, .comparison-table td {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    /* Footer adjustments */
+    .footer {
+        position: relative; /* Change to relative on mobile to avoid covering content */
+        padding: 15px 0;
     }
     
     .footer-content {
@@ -158,8 +189,13 @@ body {
     }
     
     .footer-logo, .footer-links, .footer-contact {
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         text-align: center;
+    }
+    
+    .footer-links a {
+        display: inline-block;
+        margin: 5px;
     }
     
     .footer-contact {
@@ -170,5 +206,54 @@ body {
     .sidebar-expanded .footer {
         left: 0;
         width: 100%;
+    }
+    
+    /* Fix Streamlit components on mobile */
+    .stButton button {
+        width: 100%;
+    }
+    
+    /* Make columns stack on mobile */
+    div.row-widget.stHorizontal {
+        flex-wrap: wrap !important;
+    }
+    
+    div.row-widget.stHorizontal > div {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        margin-bottom: 20px;
+    }
+    
+    /* Adjust padding for mobile */
+    .block-container {
+        padding: 1rem 0.5rem 5rem 0.5rem !important;
+    }
+    
+    /* Ensure text doesn't overflow */
+    p, h1, h2, h3, h4, h5, h6, div {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+}
+
+/* Mobile-friendly tabs */
+.stTabs [data-baseweb="tab-list"] {
+    flex-wrap: wrap;
+}
+
+.stTabs [data-baseweb="tab"] {
+    white-space: normal;
+    min-width: 80px;
+    flex-grow: 1;
+    text-align: center;
+    padding: 10px 5px;
+}
+
+/* Mobile-friendly team profiles */
+@media (max-width: 768px) {
+    .team-profile {
+        padding: 10px;
+        margin-bottom: 15px;
     }
 }

@@ -17,6 +17,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Now use regular import
 from assets.basketball_logo import get_logo_html, create_basketball_logo
+from mobile_utils import is_mobile, inject_mobile_js
 
 # ------------------------------
 # Page Configuration
@@ -27,6 +28,9 @@ st.set_page_config(
     page_icon=Image.open(BytesIO(base64.b64decode(create_basketball_logo()))),
     initial_sidebar_state="expanded"
 )
+
+# Inject mobile detection JavaScript
+inject_mobile_js()
 
 css_path = os.path.join(os.path.dirname(__file__), "..", "assets", "style.css")
 # st.write(f"Checking CSS Path: {css_path}")
@@ -43,6 +47,11 @@ TABLE_CSS = """
 <style>
 .comparison-table table.dataframe {
     width: 100% !important;
+}
+.dataframe-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 15px;
 }
 </style>
 """
@@ -81,7 +90,7 @@ st.markdown(sidebar_js, unsafe_allow_html=True)
 header_html = f"""
 <div class="header">
     <div class="header-logo">
-        {get_logo_html(size=50)}
+        {get_logo_html(size=50 if not is_mobile() else 40)}
         <div>
             <h1 class="header-title">BracketBrain</h1>
             <p class="header-subtitle">NCAA Tournament Prediction Tool</p>
@@ -217,10 +226,27 @@ def load_team_summaries():
         return {}
 
 def display_team_comparison_summaries(team1_id, team1_name, team2_id, team2_name):
-    """Display summaries for both teams side by side"""
+    """Display summaries for both teams side by side or stacked on mobile"""
     summaries = load_team_summaries()
     
-    col1, col2 = st.columns(2)
+    if is_mobile():
+        # Stacked layout for mobile
+        st.markdown(f"### {team1_name}")
+        if str(team1_id) in summaries:
+            st.markdown(f"<div class='team-profile'>{summaries[str(team1_id)]}</div>", unsafe_allow_html=True)
+        else:
+            st.info(f"No detailed profile available for {team1_name}")
+        
+        st.markdown("<hr/>", unsafe_allow_html=True)
+        
+        st.markdown(f"### {team2_name}")
+        if str(team2_id) in summaries:
+            st.markdown(f"<div class='team-profile'>{summaries[str(team2_id)]}</div>", unsafe_allow_html=True)
+        else:
+            st.info(f"No detailed profile available for {team2_name}")
+    else:
+        # Side-by-side layout for desktop
+        col1, col2 = st.columns(2)
     
     with col1:
         st.markdown(f"### {team1_name}")
@@ -352,10 +378,20 @@ def style_comparison_table(df, team1_name, team2_name):
     """Style the comparison table with color highlighting"""
     styled_df = df.copy()
     
+    # Get the safe column names from DataFrame attributes
+    safe_team1_name = df.attrs.get('safe_team1_name', "Team1")
+    safe_team2_name = df.attrs.get('safe_team2_name', "Team2")
+    
+    # Rename the columns before styling
+    styled_df = styled_df.rename(columns={
+        safe_team1_name: team1_name,
+        safe_team2_name: team2_name
+    })
+    
     # Store original numeric values for calculations
     original_values = {
-        team1_name: df[team1_name].astype(float),
-        team2_name: df[team2_name].astype(float)
+        team1_name: styled_df[team1_name].astype(float),
+        team2_name: styled_df[team2_name].astype(float)
     }
     
     def apply_color(row):
@@ -399,7 +435,9 @@ def style_comparison_table(df, team1_name, team2_name):
         return styles
     
     # Apply the styling
-    return styled_df.style.apply(apply_color, axis=1)
+    styled = styled_df.style.apply(apply_color, axis=1)
+    
+    return styled
 
 def build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names=None, lower_is_better=None):
     """Build a comparison table for the given metrics"""
@@ -408,6 +446,21 @@ def build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, met
     
     if lower_is_better is None:
         lower_is_better = []
+    
+    # For mobile, use shorter names
+    if is_mobile():
+        shortened_names = []
+        for name in metric_names:
+            # Shorten long metric names on mobile
+            if len(name) > 15:
+                shortened_names.append(name[:12] + "...")
+            else:
+                shortened_names.append(name)
+        metric_names = shortened_names
+    
+    # Create safe column names to avoid issues with spaces or special characters
+    safe_team1_name = "Team1"
+    safe_team2_name = "Team2"
     
     data = []
     for metric, name in zip(metrics, metric_names):
@@ -418,12 +471,19 @@ def build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, met
             
             data.append({
                 'Metric': name,
-                team1_name: f"{team1_stats[metric]:.2f}",
-                team2_name: f"{team2_stats[metric]:.2f}",
+                safe_team1_name: f"{team1_stats[metric]:.2f}",
+                safe_team2_name: f"{team2_stats[metric]:.2f}",
                 'Advantage': team1_name if team1_better else team2_name
             })
     
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    # Store original team names as attributes
+    df.attrs['team1_name'] = team1_name
+    df.attrs['team2_name'] = team2_name
+    df.attrs['safe_team1_name'] = safe_team1_name
+    df.attrs['safe_team2_name'] = safe_team2_name
+    
+    return df
 
 # ------------------------------
 # Analysis Functions
@@ -556,8 +616,116 @@ def main():
         else:
             win_probability = predict_with_enhanced_model(model, team1_stats, team2_stats, team1_seed, team2_seed)
         
-        # Display prediction
-        col1, col2 = st.columns(2)
+        # Display prediction - adjust layout based on mobile or desktop
+        if is_mobile():
+            # Single column layout for mobile
+            st.subheader("Prediction")
+            if win_probability > 0.5:
+                st.success(f"{team1_name} wins with {win_probability*100:.1f}% probability")
+            else:
+                st.success(f"{team2_name} wins with {(1-win_probability)*100:.1f}% probability")
+            
+            st.progress(float(win_probability))
+            
+            st.write(f"**{team1_name}**: {win_probability*100:.1f}% chance to win")
+            st.write(f"**{team2_name}**: {(1-win_probability)*100:.1f}% chance to win")
+            
+            # Add historical context
+            higher_seed = min(team1_seed, team2_seed)
+            lower_seed = max(team1_seed, team2_seed)
+            
+            # Determine which team is the higher seed
+            higher_seed_team = team1_name if team1_seed < team2_seed else team2_name
+            lower_seed_team = team2_name if team1_seed < team2_seed else team1_name
+            
+            # Get model's predicted probability for the higher seed winning
+            higher_seed_win_prob = win_probability if team1_seed < team2_seed else (1 - win_probability)
+            
+            # Calculate upset probability (lower seed winning)
+            upset_prob = 1 - higher_seed_win_prob
+            
+            st.markdown("---")
+            
+            if (higher_seed, lower_seed) in seed_matchups:
+                historical_win_rate = seed_matchups[(higher_seed, lower_seed)]
+                historical_upset_prob = 1 - historical_win_rate
+                
+                st.write(f"Historically, #{higher_seed} seeds win {historical_win_rate*100:.1f}% of games against #{lower_seed} seeds")
+                
+                # Compare model's upset probability to historical upset probability
+                if upset_prob > historical_upset_prob:
+                    upset_likelihood = upset_prob - historical_upset_prob
+                    
+                    # Only show upset alert if it's at least 4% higher than historical average
+                    if upset_likelihood >= 0.04:
+                        st.warning(f"⚠️ Potential Upset Alert: This game has a {upset_likelihood*100:.1f}% higher chance of an upset compared to historical averages")
+                        
+                        # Add additional context if the lower seed is actually favored
+                        if upset_prob > 0.5:
+                            st.info(f"📊 The model actually favors {lower_seed_team} (#{lower_seed} seed) to win this game!")
+                elif upset_prob < historical_upset_prob * 0.5:
+                    st.info("🔒 This matchup appears to be safer than the historical average for the higher seed")
+            else:
+                # For later rounds where we don't have historical seed matchup data
+                st.markdown("---")
+                st.subheader("Upset Potential")
+                
+                # Show upset alert only if lower seed has >30% chance to win
+                if upset_prob > 0.3:
+                    if upset_prob > 0.5:
+                        st.warning(f"⚠️ Major Upset Alert: The model favors {lower_seed_team} (#{lower_seed} seed) to win against {higher_seed_team} (#{higher_seed} seed)!")
+                    else:
+                        st.warning(f"⚠️ Potential Upset: {lower_seed_team} (#{lower_seed} seed) has a {upset_prob*100:.1f}% chance to upset {higher_seed_team} (#{higher_seed} seed)")
+                elif higher_seed_win_prob > 0.85:
+                    st.info(f"🔒 Lock Alert: {higher_seed_team} (#{higher_seed} seed) is heavily favored with a {higher_seed_win_prob*100:.1f}% chance to win")
+                else:
+                    st.info(f"{higher_seed_team} (#{higher_seed} seed) is favored with a {higher_seed_win_prob*100:.1f}% chance to win")
+            
+            st.markdown("---")
+            
+            st.subheader("Key Matchup Factors")
+            
+            # Display feature differences based on model
+            if model_choice == "Basic Model":
+                features = create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed)
+            elif model_choice == "Basic Model + KenPom":
+                features = create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed)
+            else:
+                features = create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed)
+            
+            # Display top 5 most important differences
+            st.write("Most important differences:")
+            feature_diffs = pd.DataFrame({
+                'Feature': features.columns,
+                'Value': features.values[0]
+            })
+            feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
+            
+            for _, row in feature_diffs.iterrows():
+                feature = row['Feature']
+                value = row['Value']
+                if feature in ['SeedDiff', 'Seed_diff']:
+                    st.write(f"• Seed Difference: {value:.0f}")
+                elif feature == 'KenPomDiff':
+                    st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_squared_diff':
+                    st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_WinPct_interaction':
+                    st.write(f"• SoS-adjusted Win %: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'SoS_Last30_interaction':
+                    st.write(f"• SoS-adjusted Recent Form: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                elif feature == 'Avg_Opp_WinPct_diff':
+                    st.write(f"• Strength of Schedule: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+                else:
+                    feature_name = feature.replace('Diff_', '').replace('_diff', '')
+                    team_advantage = team1_name if value > 0 else team2_name
+                    st.write(f"• {feature_name}: Advantage to {team_advantage}")
+            
+            # Display tempo analysis
+            display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability)
+        else:
+            # Two column layout for desktop (original code)
+            col1, col2 = st.columns(2)
         
         with col1:
             st.subheader("Prediction")
@@ -673,9 +841,67 @@ def main():
     st.header("Team Comparison")
     
     # Create tabs for different stat categories
-    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Offensive Stats", "Defensive Stats", "Performance Metrics"])
+    if is_mobile():
+        # For mobile, use a more compact layout with fewer tabs
+        tabs = st.tabs(["Overview", "Off/Def", "Advanced"])
+        
+        with tabs[0]:
+            # Overview tab
+            metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Score', 'Avg_Opp_Score', 'Avg_Opp_WinPct', 'SoS']
+            metric_names = ['Win %', 'Last 30 Win %', 'Points Scored', 'Points Allowed', 'Opponent Win %', 'Strength of Schedule']
+            lower_is_better = ['Avg_Opp_Score']
+            
+            try:
+                df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
+                styled_df = style_comparison_table(df, team1_name, team2_name)
+                
+                # Wrap table in a container for mobile scrolling
+                st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                st.dataframe(styled_df, hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error displaying comparison table: {str(e)}")
+        
+        with tabs[1]:
+            # Offensive/Defensive tab
+            metrics = ['Avg_Score', 'Avg_Opp_Score', 'FG_Pct', 'Opp_FG_Pct', 'FG3_Pct', 'Opp_FG3_Pct']
+            metric_names = ['Points Scored', 'Points Allowed', 'FG%', 'Opp FG%', '3PT%', 'Opp 3PT%']
+            lower_is_better = ['Avg_Opp_Score', 'Opp_FG_Pct', 'Opp_FG3_Pct']
+            
+            try:
+                df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
+                styled_df = style_comparison_table(df, team1_name, team2_name)
+                
+                # Wrap table in a container for mobile scrolling
+                st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                st.dataframe(styled_df, hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error displaying comparison table: {str(e)}")
+        
+        with tabs[2]:
+            # Advanced tab - check if KenPom is available
+            if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
+                metrics = ['KenPom', 'SoS', 'Avg_Opp_WinPct']
+                metric_names = ['KenPom Rank', 'Strength of Schedule', 'Opponent Win %']
+                lower_is_better = ['KenPom']  # Lower KenPom rank is better
+                
+                try:
+                    df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
+                    styled_df = style_comparison_table(df, team1_name, team2_name)
+                    
+                    # Wrap table in a container for mobile scrolling
+                    st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                    st.dataframe(styled_df, hide_index=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Error displaying comparison table: {str(e)}")
+            else:
+                st.info("Advanced metrics not available for this model selection.")
+    else:
+        # Desktop layout with more tabs (your original code)
+        tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Offensive Stats", "Defensive Stats", "Performance Metrics"])
     
-    # Define metrics for each tab based on available data
     with tab1:
         # Overview metrics
         if model_choice == "Basic Model":
@@ -746,26 +972,39 @@ def main():
                                                performance_metrics, performance_names, lower_is_better)
         st.write('<div class="comparison-table">' + style_comparison_table(performance_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
     
-    # Footer
-    footer_html = f"""
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-logo">
-                {get_logo_html()}
-                <span>BracketBrain</span>
-            </div>
-            <div class="footer-links">
-                <a href="https://ankitdevalla.com" target="_blank">About Me</a>
-                <a href="https://github.com/ankitdevalla/March_Madness_Pred" target="_blank">GitHub</a>
-                <a href="https://givebutter.com/LobMTv" target="_blank" style="color: #ffc107; font-weight: bold;">Support BracketBrain!</a>
-            </div>
-            <div class="footer-contact">
-                <div>ankitdevalla.dev@gmail.com</div>
-                <div>&copy; {datetime.date.today().year} BracketBrain</div>
-            </div>
+    # Add a footer with attribution and version info
+    st.markdown("---")
+    
+    # Adjust footer based on mobile or desktop
+    if is_mobile():
+        footer_html = """
+        <div class="footer-mobile">
+            <p>BracketBrain v1.0 | Created by Your Name</p>
+            <p>Data from NCAA, KenPom, and other sources</p>
+            <p><a href="https://givebutter.com/LobMTv" target="_blank" style="color: #ffc107; font-weight: bold;">Support BracketBrain!</a></p>
         </div>
-    </footer>
-    """
+        """
+    else:
+        footer_html = f"""
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    {get_logo_html()}
+                    <span>BracketBrain</span>
+                </div>
+                <div class="footer-links">
+                    <a href="https://ankitdevalla.com" target="_blank">About Me</a>
+                    <a href="https://github.com/ankitdevalla/March_Madness_Pred" target="_blank">GitHub</a>
+                    <a href="https://givebutter.com/LobMTv" target="_blank" style="color: #ffc107; font-weight: bold;">Support BracketBrain!</a>
+                </div>
+                <div class="footer-contact">
+                    <div>ankitdevalla.dev@gmail.com</div>
+                    <div>&copy; {datetime.date.today().year} BracketBrain</div>
+                </div>
+            </div>
+        </footer>
+        """
+    
     st.markdown(footer_html, unsafe_allow_html=True)
 
 if __name__ == "__main__":

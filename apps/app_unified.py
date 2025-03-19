@@ -1439,15 +1439,21 @@ def main():
     st.markdown("""
         <style>
         .newsletter-container {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
-            margin: 0;
+            margin-top: 20px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .newsletter-title {
-            color: #1f77b4;
+            color: #4da6ff;
             font-size: 1.5em;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        /* Remove any default top bars */
+        .newsletter-container:before {
+            display: none;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -1496,7 +1502,7 @@ def main():
     
     with st.container():
         st.markdown('<div class="newsletter-container">', unsafe_allow_html=True)
-        st.markdown('<div class="newsletter-title">Subscribe to Our Pre-Tournament Analysis</div>', unsafe_allow_html=True)
+        st.markdown('<div class="newsletter-title">Subscribe for free Pre-Tournament Analysis</div>', unsafe_allow_html=True)
         
         with st.form("newsletter_form"):
             email = st.text_input("Enter your email", placeholder="your@email.com")

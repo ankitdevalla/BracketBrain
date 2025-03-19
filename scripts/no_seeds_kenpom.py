@@ -230,7 +230,108 @@ joblib.dump(final_model, model_path)
 print(f"Model saved as '{model_path}'")
 
 # Save feature list for future reference
-# feature_list_path = os.path.join(models_dir, 'no_seeds_kenpom_features.txt')
-# with open(feature_list_path, 'w') as f:
-#     f.write('\n'.join(feature_cols))
-# print(f"Feature list saved as '{feature_list_path}'")
+feature_list_path = os.path.join(models_dir, 'no_seeds_kenpom_features.txt')
+with open(feature_list_path, 'w') as f:
+    f.write('\n'.join(feature_cols))
+print(f"Feature list saved as '{feature_list_path}'")
+
+# --- Step 9: Test Prediction Symmetry ---
+
+print("\n\n======= DEMONSTRATING PREDICTION SYMMETRY ISSUE =======")
+
+def get_win_probability(model, team1_stats, team2_stats):
+    """
+    Make a basic prediction without symmetry enforcement.
+    This is to demonstrate the asymmetry issue.
+    """
+    # Create features dictionary
+    features = {}
+    
+    # Create difference features
+    for col in season_cols:
+        features[f"{col}_diff"] = team1_stats[col] - team2_stats[col]
+    
+    # Add KenPom (lower is better, so subtract Team1 from Team2)
+    features['KenPom_diff'] = team2_stats['KenPom'] - team1_stats['KenPom']
+    
+    # Add SoS emphasis features
+    features['SoS_squared_diff'] = features['Avg_Opp_WinPct_diff'] ** 2 * np.sign(features['Avg_Opp_WinPct_diff'])
+    features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
+    features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
+    
+    # Add KenPom-SoS interaction
+    features['KenPom_SoS_interaction'] = features['KenPom_diff'] * features['Avg_Opp_WinPct_diff']
+    
+    # Create DataFrame with exact feature order
+    X = pd.DataFrame([features])
+    X = X[feature_cols]
+    
+    # Make prediction
+    dmatrix = xgb.DMatrix(X)
+    return model.predict(dmatrix)[0]
+
+# Test with a sample matchup
+if len(matchups_df) > 0:
+    print("\n1. DEMONSTRATING THE PROBLEM:\n")
+    
+    # Get a sample matchup
+    sample = matchups_df.iloc[0]
+    
+    # Extract team info
+    team1_id = sample['Team1']
+    team2_id = sample['Team2']
+    team1_name = sample.get('Team1_TeamName', f"Team {team1_id}")
+    team2_name = sample.get('Team2_TeamName', f"Team {team2_id}")
+    
+    # Create stat dictionaries
+    team1_stats = {}
+    team2_stats = {}
+    
+    for col in season_cols:
+        team1_stats[col] = sample[f'Team1_{col}']
+        team2_stats[col] = sample[f'Team2_{col}']
+    
+    # Add KenPom
+    team1_stats['KenPom'] = sample['Team1_KenPom']
+    team2_stats['KenPom'] = sample['Team2_KenPom']
+    
+    # Get probabilities from both perspectives
+    team1_win_prob = get_win_probability(final_model, team1_stats, team2_stats)
+    team2_win_prob = get_win_probability(final_model, team2_stats, team1_stats)
+    
+    print(f"Matchup: {team1_name} vs {team2_name}")
+    print(f"Team1 win probability: {team1_win_prob:.4f}")
+    print(f"Team2 win probability: {team2_win_prob:.4f}")
+    print(f"Sum of probabilities: {team1_win_prob + team2_win_prob:.4f}")  # Should be 1.0 ideally
+    print(f"Asymmetry error: {abs(1.0 - (team1_win_prob + team2_win_prob)):.4f}")
+    
+    print("\n2. SOLUTION APPROACH #1: AVERAGING TEAM1 & (1-TEAM2) PROBABILITIES\n")
+    
+    # The simplest approach to enforce symmetry: average the results
+    symmetric_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
+    symmetric_team2_win_prob = 1 - symmetric_team1_win_prob
+    
+    print(f"Team1 win prob: {team1_win_prob:.4f}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob:.4f}")
+    print(f"Symmetrized Team1 win prob: {symmetric_team1_win_prob:.4f}")
+    print(f"Symmetrized Team2 win prob: {symmetric_team2_win_prob:.4f}")
+    print(f"Sum of symmetrized probs: {symmetric_team1_win_prob + symmetric_team2_win_prob:.4f}")
+    
+    print("\n3. SOLUTION APPROACH #2: TRAIN A SYMMETRIC MODEL\n")
+    
+    print("This is the recommended long-term solution:")
+    print("1. Redesign your feature creation to be inherently symmetric")
+    print("2. Use absolute differences for numeric features, not directional differences")
+    print("3. For ordered features like KenPom, use features that capture which team is better")
+    print("   - e.g., 'better_team_KenPom' and 'worse_team_KenPom' instead of 'KenPom_diff'")
+    print("4. Avoid squared terms and complex interactions that introduce asymmetry")
+    print("5. Train a new model with this symmetric feature design")
+    
+    print("\nExample of symmetry-preserving feature design:")
+    print("- avg_score_diff = abs(team1_avg_score - team2_avg_score)")
+    print("- team1_is_better_kenpom = 1 if team1_kenpom < team2_kenpom else 0")
+    print("- better_team_kenpom = min(team1_kenpom, team2_kenpom)")
+    print("- worse_team_kenpom = max(team1_kenpom, team2_kenpom)")
+    
+    print("\nWhen using these kinds of features, swapping team1 and team2 will")
+    print("produce exact mirror probabilities without needing to average.")

@@ -30,6 +30,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Add Google Search Console verification meta tag
+st.markdown('<meta name="google-site-verification" content="MvzMZFiCbHt8maCA4Ev7yoOnFNDqoZcPxSWelmwRcjQ" />', unsafe_allow_html=True)
+
 # Inject mobile detection JavaScript
 inject_mobile_js()
 
@@ -215,6 +218,372 @@ def load_data():
     
     return teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups
 
+@st.cache_data
+def load_betting_odds_data():
+    """Load NCAA tournament betting odds from CSV file"""
+    try:
+        odds_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "ncaa_tournament_odds_latest.csv"))
+        if os.path.exists(odds_path):
+            odds_df = pd.read_csv(odds_path)
+            print(f"Loaded betting odds data with {len(odds_df)} entries")
+            return odds_df
+        else:
+            st.warning("⚠️ NCAA Tournament odds data not found. Betting analysis will not be available.")
+            return None
+    except Exception as e:
+        st.warning(f"Could not load betting odds data: {str(e)}")
+        return None
+
+def american_odds_to_probability(american_odds):
+    """Convert American odds to implied probability"""
+    if pd.isna(american_odds):
+        return None
+    if american_odds > 0:
+        return 100 / (american_odds + 100)
+    else:
+        return abs(american_odds) / (abs(american_odds) + 100)
+
+def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name, team2_seed, prediction_prob=None):
+    """
+    Display betting odds analysis for the matchup, with model comparison
+    
+    Parameters:
+    - team1_id: Team 1 ID
+    - team1_name: Team 1 name
+    - team1_seed: Team 1 seed
+    - team2_id: Team 2 ID
+    - team2_name: Team 2 name
+    - team2_seed: Team 2 seed
+    - prediction_prob: Model's prediction probability of team1 winning (optional)
+    """
+    st.markdown("---")
+    st.subheader("💰 Betting Odds Analysis")
+    
+    # Load betting odds data
+    odds_df = load_betting_odds_data()
+    
+    if odds_df is None or len(odds_df) == 0:
+        st.info("📊 Betting odds data is not available. Run the `fetch_daily_odds.py` script to fetch the latest NCAA Tournament odds.")
+        return
+    
+    # Convert team IDs to integers for comparison if they're not already
+    try:
+        team1_id = int(team1_id)
+        team2_id = int(team2_id)
+    except (TypeError, ValueError):
+        # If conversion fails, continue with original values
+        pass
+    
+    # Filter for relevant games involving either team
+    team1_games = odds_df[(odds_df['team_id'] == team1_id) | 
+                         (odds_df['home_team_id'] == team1_id) | 
+                         (odds_df['away_team_id'] == team1_id)]
+    
+    team2_games = odds_df[(odds_df['team_id'] == team2_id) | 
+                         (odds_df['home_team_id'] == team2_id) | 
+                         (odds_df['away_team_id'] == team2_id)]
+    
+    # Find games where both teams are playing each other
+    common_game_ids = set(team1_games['game_id']).intersection(set(team2_games['game_id']))
+    
+    if not common_game_ids:
+        st.info(f"📊 No betting odds found for {team1_name} vs {team2_name}. The betting markets may not be open yet for this matchup.")
+        return
+    
+    # Get the odds for this specific matchup
+    matchup_odds = odds_df[odds_df['game_id'].isin(common_game_ids)]
+    
+    # Filter to get moneyline odds for each team
+    team1_ml = matchup_odds[(matchup_odds['team_id'] == team1_id) & 
+                          (matchup_odds['market_type'] == 'moneyline')]
+    team2_ml = matchup_odds[(matchup_odds['team_id'] == team2_id) & 
+                          (matchup_odds['market_type'] == 'moneyline')]
+    
+    # Filter to get spread odds for each team
+    team1_spread = matchup_odds[(matchup_odds['team_id'] == team1_id) & 
+                              (matchup_odds['market_type'] == 'spread')]
+    team2_spread = matchup_odds[(matchup_odds['team_id'] == team2_id) & 
+                              (matchup_odds['market_type'] == 'spread')]
+    
+    # Display game information
+    if not team1_ml.empty:
+        game_date = team1_ml['game_date'].iloc[0]
+        game_time = team1_ml['game_time'].iloc[0]
+        sportsbook = team1_ml['sportsbook'].iloc[0]
+        
+        # Calculate vig early if available
+        vig_info = ""
+        if not team1_ml.empty and not team2_ml.empty:
+            try:
+                team1_odds = team1_ml['price'].iloc[0]
+                team2_odds = team2_ml['price'].iloc[0]
+                team1_implied_prob = american_odds_to_probability(team1_odds) * 100
+                team2_implied_prob = american_odds_to_probability(team2_odds) * 100
+                total_implied = team1_implied_prob + team2_implied_prob
+                vig = total_implied - 100
+                vig_info = f" | Vig: {vig:.1f}% | Data from: {sportsbook}"
+            except Exception:
+                vig_info = f" | Data from: {sportsbook}"
+        
+        st.write(f"**Game Time:** {game_date} at {game_time}{vig_info}")
+    
+    # Create two columns for display
+    if not is_mobile():
+        col1, col2 = st.columns([1, 1])
+    else:
+        col1 = st.container()
+        col2 = st.container()
+    
+    # Flag to track if we have valid odds data
+    has_valid_odds = False
+    
+    with col1:
+        st.write("**🎲 Moneyline Odds**")
+        if not team1_ml.empty and not team2_ml.empty:
+            try:
+                # Calculate implied probabilities
+                team1_odds = team1_ml['price'].iloc[0]
+                team2_odds = team2_ml['price'].iloc[0]
+                
+                team1_implied_prob = american_odds_to_probability(team1_odds) * 100
+                team2_implied_prob = american_odds_to_probability(team2_odds) * 100
+                
+                # Calculate the overround/vig
+                total_implied = team1_implied_prob + team2_implied_prob
+                vig = total_implied - 100
+                
+                # Calculate fair probabilities (remove the vig)
+                team1_fair_prob = (team1_implied_prob / total_implied) * 100
+                team2_fair_prob = (team2_implied_prob / total_implied) * 100
+                
+                # Format the odds for display
+                team1_odds_str = f"+{team1_odds}" if team1_odds > 0 else f"{team1_odds}"
+                team2_odds_str = f"+{team2_odds}" if team2_odds > 0 else f"{team2_odds}"
+                
+                # Create a dataframe for display
+                ml_data = {
+                    'Team': [team1_name, team2_name],
+                    'Odds': [team1_odds_str, team2_odds_str],
+                    'Implied %': [f"{team1_implied_prob:.1f}%", f"{team2_implied_prob:.1f}%"],
+                    'Fair %': [f"{team1_fair_prob:.1f}%", f"{team2_fair_prob:.1f}%"]
+                }
+                ml_df = pd.DataFrame(ml_data)
+                
+                # Highlight the favorite
+                def style_ml_odds(val):
+                    if val in [team1_odds_str, team2_odds_str]:
+                        if val == team1_odds_str and team1_odds < team2_odds:
+                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                        elif val == team2_odds_str and team2_odds < team1_odds:
+                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                    return ''
+                
+                styled_ml_df = ml_df.style.map(style_ml_odds, subset=['Odds'])
+                st.dataframe(styled_ml_df, hide_index=True)
+                
+                # Add explanation
+                with st.expander("How to read moneyline odds"):
+                    st.write("""
+                    - **American Odds** show how much you'd win on a 100 dollar bet (if positive) or how much you need to bet to win $100 (if negative).
+                    - **Implied %** is the probability of winning implied by the odds.
+                    - **Fair %** is the implied probability with the bookmaker's margin removed.
+                    - The team with the lower (more negative) odds is the favorite.
+                    """)
+                
+                has_valid_odds = True
+            except Exception as e:
+                st.warning(f"Error processing moneyline odds: {str(e)}")
+        else:
+            st.info("Moneyline odds not available for this matchup.")
+    
+    with col2:
+        st.write("**📏 Point Spread**")
+        if not team1_spread.empty and not team2_spread.empty:
+            try:
+                # Get the spread and odds
+                team1_spread_line = team1_spread['handicap'].iloc[0]
+                team1_spread_odds = team1_spread['price'].iloc[0]
+                team2_spread_line = team2_spread['handicap'].iloc[0]
+                team2_spread_odds = team2_spread['price'].iloc[0]
+                
+                # Format for display
+                team1_spread_str = f"{team1_spread_line:+g}" if not pd.isna(team1_spread_line) else "N/A"
+                team2_spread_str = f"{team2_spread_line:+g}" if not pd.isna(team2_spread_line) else "N/A"
+                team1_spread_odds_str = f"+{team1_spread_odds}" if team1_spread_odds > 0 else f"{team1_spread_odds}"
+                team2_spread_odds_str = f"+{team2_spread_odds}" if team2_spread_odds > 0 else f"{team2_spread_odds}"
+                
+                # Create a dataframe for display
+                spread_data = {
+                    'Team': [team1_name, team2_name],
+                    'Spread': [team1_spread_str, team2_spread_str],
+                    'Odds': [team1_spread_odds_str, team2_spread_odds_str]
+                }
+                spread_df = pd.DataFrame(spread_data)
+                
+                # Highlight the favorite
+                def style_spread(val):
+                    if val in [team1_spread_str, team2_spread_str]:
+                        if val == team1_spread_str and team1_spread_line < 0:
+                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                        elif val == team2_spread_str and team2_spread_line < 0:
+                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                    return ''
+                
+                styled_spread_df = spread_df.style.map(style_spread, subset=['Spread'])
+                st.dataframe(styled_spread_df, hide_index=True)
+                
+                # Add explanation of how to read the spread
+                if not pd.isna(team1_spread_line) and not pd.isna(team2_spread_line):
+                    favorite = team1_name if team1_spread_line < 0 else team2_name
+                    underdog = team2_name if team1_spread_line < 0 else team1_name
+                    spread_value = abs(min(team1_spread_line, team2_spread_line))
+                
+                # Add explanation
+                with st.expander("How to read point spreads"):
+                    st.write("""
+                    - A negative spread (e.g., -5.5) means that team is favored to win by that many points.
+                    - A positive spread (e.g., +5.5) means that team can lose by up to that many points and still "cover" the spread.
+                    - If you bet on a -5.5 spread, your team must win by 6 or more points for you to win the bet.
+                    - If you bet on a +5.5 spread, your team can lose by 5 or fewer points (or win outright) for you to win the bet.
+                    """)
+            except Exception as e:
+                st.warning(f"Error processing spread odds: {str(e)}")
+        else:
+            st.info("Spread odds not available for this matchup.")
+    
+    # Model Edge Analysis - if we have a prediction and valid odds data
+    if prediction_prob is not None and has_valid_odds:
+        st.markdown("---")
+        st.subheader("📊 Model vs. Market Analysis")
+        
+        if not team1_ml.empty and not team2_ml.empty:
+            try:
+                # Get model probabilities
+                model_team1_prob = prediction_prob * 100
+                model_team2_prob = (1 - prediction_prob) * 100
+                
+                # Calculate edge (model probability - fair implied probability)
+                team1_edge = model_team1_prob - team1_fair_prob
+                team2_edge = model_team2_prob - team2_fair_prob
+                
+                # Display the comparison
+                st.write("Our model's prediction vs. what the betting markets imply:")
+                
+                # Create columns for visualization
+                if not is_mobile():
+                    prob_col1, prob_col2 = st.columns(2)
+                else:
+                    prob_col1 = st.container()
+                    prob_col2 = st.container()
+                
+                with prob_col1:
+                    st.metric(
+                        label=f"{team1_name} Win Probability", 
+                        value=f"{model_team1_prob:.1f}%", 
+                        delta=f"{team1_edge:+.1f}%" if abs(team1_edge) > 1 else "≈ Market",
+                        delta_color="normal"
+                    )
+                
+                with prob_col2:
+                    st.metric(
+                        label=f"{team2_name} Win Probability", 
+                        value=f"{model_team2_prob:.1f}%", 
+                        delta=f"{team2_edge:+.1f}%" if abs(team2_edge) > 1 else "≈ Market",
+                        delta_color="normal"
+                    )
+                
+                # Create dataframe for comparison
+                comparison_data = {
+                    'Team': [team1_name, team2_name],
+                    'Model Probability': [f"{model_team1_prob:.1f}%", f"{model_team2_prob:.1f}%"],
+                    'Market Probability': [f"{team1_fair_prob:.1f}%", f"{team2_fair_prob:.1f}%"],
+                    'Edge': [f"{team1_edge:+.1f}%", f"{team2_edge:+.1f}%"]
+                }
+                comparison_df = pd.DataFrame(comparison_data)
+                
+                # Add styling to highlight edges
+                def style_edge(val):
+                    if isinstance(val, str) and '+' in val:
+                        edge_val = float(val.replace('+', '').replace('%', ''))
+                        if edge_val > 5:
+                            return 'background-color: rgba(0, 255, 0, 0.3); font-weight: bold'
+                        elif edge_val > 2:
+                            return 'background-color: rgba(0, 255, 0, 0.1)'
+                    elif isinstance(val, str) and '-' in val:
+                        edge_val = float(val.replace('%', ''))
+                        if edge_val < -5:
+                            return 'background-color: rgba(255, 0, 0, 0.3)'
+                        elif edge_val < -2:
+                            return 'background-color: rgba(255, 0, 0, 0.1)'
+                    return ''
+                
+                # Apply styling
+                styled_df = comparison_df.style.map(style_edge, subset=['Edge'])
+                st.dataframe(styled_df, hide_index=True)
+                
+                # Find maximum edge and display betting value
+                max_edge_team1 = team1_edge
+                max_edge_team2 = team2_edge
+                
+                # Calculate implied odds for a bet with our model's probabilities
+                def calculate_fair_odds(probability):
+                    """Convert probability to fair American odds"""
+                    if probability <= 0 or probability >= 1:
+                        return None
+                    if probability < 0.5:
+                        return round(100 / probability - 100)
+                    else:
+                        return round(-100 * probability / (1 - probability))
+                
+                team1_fair_odds = calculate_fair_odds(prediction_prob)
+                team2_fair_odds = calculate_fair_odds(1 - prediction_prob)
+                
+                team1_fair_odds_str = f"+{team1_fair_odds}" if team1_fair_odds > 0 else f"{team1_fair_odds}"
+                team2_fair_odds_str = f"+{team2_fair_odds}" if team2_fair_odds > 0 else f"{team2_fair_odds}"
+                
+                # Value bet analysis
+                st.markdown("### Value Bet Analysis")
+                
+                if max_edge_team1 > max_edge_team2 and max_edge_team1 > 2:
+                    st.markdown(f"**Value Bet:** {team1_name} with a **{max_edge_team1:+.1f}%** edge")
+                    if max_edge_team1 > 5:
+                        st.success(f"✅ **Significant Edge Detected:** The model gives {team1_name} a strong edge over the market odds.")
+                        st.write(f"**Fair odds:** {team1_fair_odds_str} (Model's estimate) vs **Market odds:** {team1_odds_str}")
+                    else:
+                        st.info(f"ℹ️ **Small Edge Detected:** The model gives {team1_name} a slight edge over the market odds.")
+                        st.write(f"**Fair odds:** {team1_fair_odds_str} (Model's estimate) vs **Market odds:** {team1_odds_str}")
+                elif max_edge_team2 > max_edge_team1 and max_edge_team2 > 2:
+                    st.markdown(f"**Value Bet:** {team2_name} with a **{max_edge_team2:+.1f}%** edge")
+                    if max_edge_team2 > 5:
+                        st.success(f"✅ **Significant Edge Detected:** The model gives {team2_name} a strong edge over the market odds.")
+                        st.write(f"**Fair odds:** {team2_fair_odds_str} (Model's estimate) vs **Market odds:** {team2_odds_str}")
+                    else:
+                        st.info(f"ℹ️ **Small Edge Detected:** The model gives {team2_name} a slight edge over the market odds.")
+                        st.write(f"**Fair odds:** {team2_fair_odds_str} (Model's estimate) vs **Market odds:** {team2_odds_str}")
+                else:
+                    st.write("The model's predictions are closely aligned with the betting market odds.")
+                    st.write(f"No significant betting edge detected (max edge < 2%).")
+                    
+                # Add interpretation of the edge
+                with st.expander("Understanding the edge"):
+                    st.markdown("""
+                    **How to Interpret the Edge:**
+                    
+                    The edge represents the difference between our model's predicted probability and the market implied probability:
+                    
+                    - **5%+ edge:** Very strong betting opportunity
+                    - **2-5% edge:** Potentially valuable betting opportunity
+                    - **<2% edge:** No significant edge or value
+                    
+                    When a positive edge is detected, it means our model believes a team has a better chance of winning than what the betting markets suggest.
+                    
+                    **Fair odds** represent what the odds should be based on our model's probability. If the market odds are more favorable than our fair odds, there's potentially value in that bet.
+                    """)
+            except Exception as e:
+                st.warning(f"Error in edge analysis: {str(e)}")
+        else:
+            st.info("Cannot perform edge analysis without moneyline odds.")
+
 # ------------------------------
 # Team Summary Functions
 # ------------------------------
@@ -362,8 +731,11 @@ def predict_with_basic_model(model, team1_stats, team2_stats, team1_seed, team2_
     # Average the two predictions (1 - team2_win_prob gives team1's win probability from swapped perspective)
     final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
     
-    print(f"Team1 win prob: {team1_win_prob}")
-    print(f"1 - Team2 win prob: {1 - team2_win_prob}")
+    # For debugging
+    print(f"Team1 win prob: {team1_win_prob:.4f}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob:.4f}")
+    print(f"Difference: {abs(team1_win_prob - (1 - team2_win_prob)):.4f}")
+    print(f"Symmetrized prob: {final_team1_win_prob:.4f}")
     
     return final_team1_win_prob
 
@@ -378,6 +750,11 @@ def predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed,
     X_swapped = create_basic_kenpom_features(team2_stats, team1_stats, team2_seed, team1_seed)
     dmatrix_swapped = xgb.DMatrix(X_swapped)
     team2_win_prob = model.predict(dmatrix_swapped)[0]
+    
+    # For debugging
+    print(f"Team1 win prob: {team1_win_prob:.4f}")
+    print(f"1 - Team2 win prob: {1 - team2_win_prob:.4f}")
+    print(f"Difference: {abs(team1_win_prob - (1 - team2_win_prob)):.4f}")
     
     # Average the two predictions
     final_team1_win_prob = (team1_win_prob + (1 - team2_win_prob)) / 2
@@ -584,7 +961,7 @@ def main():
         if 'KenPom' not in current_basic_stats_with_kenpom.columns:
             current_basic_stats_with_kenpom['KenPom'] = 0
     
-    # Sidebar for model selection
+    # Sidebar for model selection and other settings
     st.sidebar.header("Model Selection")
     model_choice = st.sidebar.selectbox(
         "Select Prediction Model",
@@ -592,6 +969,10 @@ def main():
         index=0,  # Default to Basic Model
         help="Basic Model uses season averages and strength of schedule. Basic Model + KenPom adds KenPom rankings. Enhanced Model includes additional advanced metrics."
     )
+    
+    # Add option to show betting odds
+    show_betting_odds = st.sidebar.checkbox("Show Betting Odds Analysis", value=False, 
+                                           help="Display current betting odds and analysis for this matchup")
     
     # Load the selected model
     if model_choice == "Basic Model":
@@ -863,7 +1244,6 @@ def main():
                 if feature in ['SeedDiff', 'Seed_diff']:
                     st.write(f"• Seed Difference: {value:.0f}")
                 elif feature == 'KenPomDiff':
-                    # st.write(f"KenPomDiff: {value}")
                     st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
                 elif feature == 'SoS_squared_diff':
                     st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
@@ -885,6 +1265,10 @@ def main():
         with team_summaries_placeholder:
             st.header("Team Profiles")
             display_team_comparison_summaries(team1_id, team1_name, team2_id, team2_name)
+        
+        # Display betting odds analysis if selected
+        if show_betting_odds:
+            display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name, team2_seed, win_probability)
     
     # Display team comparisons
     st.header("Team Comparison")

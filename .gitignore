@@ -1,4 +1,8 @@
 venv
 output
 T-Rank
+<<<<<<< HEAD
 secret.toml
+=======
+.env
+>>>>>>> 3de9e2736e7444b5c6a639ffac3989279b482f31

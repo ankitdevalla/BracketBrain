@@ -1,0 +1,79 @@
+game_id,game_date,game_time,home_team,away_team,home_team_id,away_team_id,team,team_id,team_type,spread,price,sportsbook,last_updated,fetch_date,fetch_time
+289cG2vuNBqOwtCXCuBk,2025-03-19,01:00:00,Arkansas State Red Wolves,Saint Louis Billikens,1116,1387,Arkansas State Red Wolves,1116,home,-5.5,-115,betmgm,2025-03-18T21:50:22.000Z,2025-03-18,16:51:12
+289cG2vuNBqOwtCXCuBk,2025-03-19,01:00:00,Arkansas State Red Wolves,Saint Louis Billikens,1116,1387,Saint Louis Billikens,1387,away,+5.5,-105,betmgm,2025-03-18T21:50:22.000Z,2025-03-18,16:51:12
+RM6IZMPUprfZ8XgSoH2F,2025-03-19,01:00:00,Oklahoma State Cowboys,Wichita State Shockers,1328,1455,Oklahoma State Cowboys,1328,home,-6.5,-110,betmgm,2025-03-18T21:49:57.000Z,2025-03-18,16:51:12
+RM6IZMPUprfZ8XgSoH2F,2025-03-19,01:00:00,Oklahoma State Cowboys,Wichita State Shockers,1328,1455,Wichita State Shockers,1455,away,+6.5,-110,betmgm,2025-03-18T21:49:57.000Z,2025-03-18,16:51:12
+2Q6gaxA10xIc47eP5VIF,2025-03-19,01:10:00,San Diego State Aztecs,North Carolina Tar Heels,1361,1314,San Diego State Aztecs,1361,home,+4.5,-110,betmgm,2025-03-18T21:50:12.000Z,2025-03-18,16:51:12
+2Q6gaxA10xIc47eP5VIF,2025-03-19,01:10:00,San Diego State Aztecs,North Carolina Tar Heels,1361,1314,North Carolina Tar Heels,1314,away,-4.5,-110,betmgm,2025-03-18T21:50:12.000Z,2025-03-18,16:51:12
+6eEGpLNNjrukSBNepe9S,2025-03-19,03:00:00,Santa Clara Broncos,California Riverside Highlanders,1365,1143,Santa Clara Broncos,1365,home,-9.5,-115,betmgm,2025-03-18T21:49:57.000Z,2025-03-18,16:51:12
+6eEGpLNNjrukSBNepe9S,2025-03-19,03:00:00,Santa Clara Broncos,California Riverside Highlanders,1365,1143,California Riverside Highlanders,1143,away,+9.5,-105,betmgm,2025-03-18T21:49:57.000Z,2025-03-18,16:51:12
+KdXXPzzKqtbMxsjTkyBn,2025-03-19,22:40:00,American University Eagles,Mount St Mary's Mountaineers,1110,1291,American University Eagles,1110,home,-2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+KdXXPzzKqtbMxsjTkyBn,2025-03-19,22:40:00,American University Eagles,Mount St Mary's Mountaineers,1110,1291,Mount St Mary's Mountaineers,1291,away,+2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+JFqzfGXe4eF8kIItBNSE,2025-03-19,23:00:00,Florida Atlantic Owls,Dayton Flyers,1196,1173,Florida Atlantic Owls,1196,home,-1.5,+105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+JFqzfGXe4eF8kIItBNSE,2025-03-19,23:00:00,Florida Atlantic Owls,Dayton Flyers,1196,1173,Dayton Flyers,1173,away,+1.5,-130,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+tNMv0dKm3QK10y9J3zFe,2025-03-19,23:00:00,George Mason Patriots,Samford Bulldogs,1206,1359,George Mason Patriots,1206,home,-7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+tNMv0dKm3QK10y9J3zFe,2025-03-19,23:00:00,George Mason Patriots,Samford Bulldogs,1206,1359,Samford Bulldogs,1359,away,+7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+YPmJUramTaDKZzaJ5q46,2025-03-20,00:00:00,North Texas Mean Green,Furman Paladins,1317,1202,North Texas Mean Green,1317,home,-8.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+YPmJUramTaDKZzaJ5q46,2025-03-20,00:00:00,North Texas Mean Green,Furman Paladins,1317,1202,Furman Paladins,1202,away,+8.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+ZxhBz21LcEaefKpRYqT0,2025-03-20,00:00:00,Bradley Braves,North Alabama Lions,1133,1104,Bradley Braves,1133,home,-2.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+ZxhBz21LcEaefKpRYqT0,2025-03-20,00:00:00,Bradley Braves,North Alabama Lions,1133,1104,North Alabama Lions,1104,away,+2.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+RIiHFkOv7LgF7JDlCpGJ,2025-03-20,01:00:00,Southern Methodist Mustangs,Northern Iowa Panthers,1374,1234,Southern Methodist Mustangs,1374,home,-10.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+RIiHFkOv7LgF7JDlCpGJ,2025-03-20,01:00:00,Southern Methodist Mustangs,Northern Iowa Panthers,1374,1234,Northern Iowa Panthers,1234,away,+10.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+zBexcl0i7kwGbaGqmgPb,2025-03-20,01:10:00,Texas Longhorns,Xavier Musketeers,1400,1462,Texas Longhorns,1400,home,+2.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+zBexcl0i7kwGbaGqmgPb,2025-03-20,01:10:00,Texas Longhorns,Xavier Musketeers,1400,1462,Xavier Musketeers,1462,away,-2.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+xgaDencMt1N0uqS23HKZ,2025-03-20,02:00:00,UC Irvine Anteaters,Northern Colorado Bears,1414,1160,UC Irvine Anteaters,1414,home,-7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+xgaDencMt1N0uqS23HKZ,2025-03-20,02:00:00,UC Irvine Anteaters,Northern Colorado Bears,1414,1160,Northern Colorado Bears,1160,away,+7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+GI8gE6Hu7mEXTYeZrog0,2025-03-20,03:00:00,San Francisco Dons,Utah Valley Wolverines,1362,1428,San Francisco Dons,1362,home,-7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+GI8gE6Hu7mEXTYeZrog0,2025-03-20,03:00:00,San Francisco Dons,Utah Valley Wolverines,1362,1428,Utah Valley Wolverines,1428,away,+7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+NWEWA52Ng8AXCJKOAw3O,2025-03-20,03:00:00,San Jose State Spartans,Loyola Chicago Ramblers,1363,1260,San Jose State Spartans,1363,home,+2.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+NWEWA52Ng8AXCJKOAw3O,2025-03-20,03:00:00,San Jose State Spartans,Loyola Chicago Ramblers,1363,1260,Loyola Chicago Ramblers,1260,away,-2.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+Cwii88OQiALhGiU7jdb2,2025-03-20,16:15:00,Louisville Cardinals,Creighton Bluejays,1257,1166,Louisville Cardinals,1257,home,-2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+Cwii88OQiALhGiU7jdb2,2025-03-20,16:15:00,Louisville Cardinals,Creighton Bluejays,1257,1166,Creighton Bluejays,1166,away,+2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+3twLZTfPfgBJFNabkDvX,2025-03-20,16:40:00,Purdue Boilermakers,High Point Panthers,1345,1219,Purdue Boilermakers,1345,home,-8.5,-102,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+3twLZTfPfgBJFNabkDvX,2025-03-20,16:40:00,Purdue Boilermakers,High Point Panthers,1345,1219,High Point Panthers,1219,away,+8.5,-118,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+fQBkd4DTagdDjyCSGZxs,2025-03-20,17:30:00,Wisconsin Badgers,Montana Grizzlies,1458,1285,Wisconsin Badgers,1458,home,-17.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+fQBkd4DTagdDjyCSGZxs,2025-03-20,17:30:00,Wisconsin Badgers,Montana Grizzlies,1458,1285,Montana Grizzlies,1285,away,+17.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+HL47B7mQcohjdl1PdGp1,2025-03-20,18:00:00,Houston Cougars,SIU Edwardsville Cougars,1222,1188,Houston Cougars,1222,home,-29.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+HL47B7mQcohjdl1PdGp1,2025-03-20,18:00:00,Houston Cougars,SIU Edwardsville Cougars,1222,1188,SIU Edwardsville Cougars,1188,away,+29.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+0io5id7HZUxSHIGBiP6r,2025-03-20,19:15:00,Clemson Tigers,McNeese State Cowboys,1155,1270,Clemson Tigers,1155,home,-7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+0io5id7HZUxSHIGBiP6r,2025-03-20,19:15:00,Clemson Tigers,McNeese State Cowboys,1155,1270,McNeese State Cowboys,1270,away,+7.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+JXxH2lwPLBriLVOVph5t,2025-03-20,20:05:00,Brigham Young Cougars,VCU Rams,1140,1433,Brigham Young Cougars,1140,home,-2.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+JXxH2lwPLBriLVOVph5t,2025-03-20,20:05:00,Brigham Young Cougars,VCU Rams,1140,1433,VCU Rams,1433,away,+2.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+VFicV0wpZIjpZd4yvslU,2025-03-20,20:35:00,Gonzaga Bulldogs,Georgia Bulldogs,1211,1208,Gonzaga Bulldogs,1211,home,-5.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+VFicV0wpZIjpZd4yvslU,2025-03-20,20:35:00,Gonzaga Bulldogs,Georgia Bulldogs,1211,1208,Georgia Bulldogs,1208,away,+5.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+vWhAKE3R793cvy8n0xoV,2025-03-20,22:50:00,Tennessee Volunteers,Wofford Terriers,1397,1459,Tennessee Volunteers,1397,home,-18.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+vWhAKE3R793cvy8n0xoV,2025-03-20,22:50:00,Tennessee Volunteers,Wofford Terriers,1397,1459,Wofford Terriers,1459,away,+18.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+LjIr89TB0xNfDc4E3gLu,2025-03-20,23:10:00,Kansas Jayhawks,Arkansas Razorbacks,1242,1116,Kansas Jayhawks,1242,home,-4.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+LjIr89TB0xNfDc4E3gLu,2025-03-20,23:10:00,Kansas Jayhawks,Arkansas Razorbacks,1242,1116,Arkansas Razorbacks,1116,away,+4.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+mwRs6DD7jKFGpVlcXhbX,2025-03-20,23:25:00,Texas A&M Aggies,Yale Bulldogs,1401,1463,Texas A&M Aggies,1401,home,-7.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+mwRs6DD7jKFGpVlcXhbX,2025-03-20,23:25:00,Texas A&M Aggies,Yale Bulldogs,1401,1463,Yale Bulldogs,1463,away,+7.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+41qNmvq0odvKIeYWCMjS,2025-03-20,23:35:00,Missouri Tigers,Drake Bulldogs,1281,1179,Missouri Tigers,1281,home,-6.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+41qNmvq0odvKIeYWCMjS,2025-03-20,23:35:00,Missouri Tigers,Drake Bulldogs,1281,1179,Drake Bulldogs,1179,away,+6.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+LVfzgFNIA0hAu1EA8X8o,2025-03-21,01:25:00,UCLA Bruins,Utah State Aggies,1417,1429,UCLA Bruins,1417,home,-5.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+LVfzgFNIA0hAu1EA8X8o,2025-03-21,01:25:00,UCLA Bruins,Utah State Aggies,1417,1429,Utah State Aggies,1429,away,+5.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+l3S6nmHHrnXmrWR1D68e,2025-03-21,01:45:00,St. John's Red Storm,Nebraska-Omaha Mavericks,1385,1303,St. John's Red Storm,1385,home,-18.5,-115,betmgm,2025-03-18T21:49:24.380Z,2025-03-18,16:51:12
+l3S6nmHHrnXmrWR1D68e,2025-03-21,01:45:00,St. John's Red Storm,Nebraska-Omaha Mavericks,1385,1303,Nebraska-Omaha Mavericks,1303,away,+18.5,-105,betmgm,2025-03-18T21:49:24.380Z,2025-03-18,16:51:12
+mMcqVml2WDWoTR9nJyGv,2025-03-21,02:00:00,Michigan Wolverines,California San Diego Tritons,1276,1471,Michigan Wolverines,1276,home,-2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+mMcqVml2WDWoTR9nJyGv,2025-03-21,02:00:00,Michigan Wolverines,California San Diego Tritons,1276,1471,California San Diego Tritons,1471,away,+2.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+MK7RtqZRRuA18UN8mkuw,2025-03-21,02:10:00,Texas Tech Red Raiders,UNC Wilmington Seahawks,1403,1423,Texas Tech Red Raiders,1403,home,-15.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+MK7RtqZRRuA18UN8mkuw,2025-03-21,02:10:00,Texas Tech Red Raiders,UNC Wilmington Seahawks,1403,1423,UNC Wilmington Seahawks,1423,away,+15.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+yh88Hmbizu2hT0qPAeKt,2025-03-21,16:15:00,Mississippi State Bulldogs,Baylor Bears,1280,1124,Mississippi State Bulldogs,1280,home,-1.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+yh88Hmbizu2hT0qPAeKt,2025-03-21,16:15:00,Mississippi State Bulldogs,Baylor Bears,1280,1124,Baylor Bears,1124,away,+1.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+tFUmVlDjINXqSKwm9Kku,2025-03-21,16:40:00,Alabama Crimson Tide,Robert Morris Colonials,1104,1352,Alabama Crimson Tide,1104,home,-23.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+tFUmVlDjINXqSKwm9Kku,2025-03-21,16:40:00,Alabama Crimson Tide,Robert Morris Colonials,1104,1352,Robert Morris Colonials,1352,away,+23.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+oZvXVSQzPaLxTcLTllJ1,2025-03-21,17:30:00,Iowa State Cyclones,Lipscomb Bisons,1235,1252,Iowa State Cyclones,1235,home,-14.5,-118,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+oZvXVSQzPaLxTcLTllJ1,2025-03-21,17:30:00,Iowa State Cyclones,Lipscomb Bisons,1235,1252,Lipscomb Bisons,1252,away,+14.5,-102,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+jGQKIlfkIDP6G4yVh5IH,2025-03-21,18:00:00,Memphis Tigers,Colorado State Rams,1272,1161,Memphis Tigers,1272,home,+1.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+jGQKIlfkIDP6G4yVh5IH,2025-03-21,18:00:00,Memphis Tigers,Colorado State Rams,1272,1161,Colorado State Rams,1161,away,-1.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+RtjK6t8AvXqzLOY75rny,2025-03-21,19:15:00,St Mary's Gaels,Vanderbilt Commodores,1388,1435,St Mary's Gaels,1388,home,-4.5,-105,betmgm,2025-03-18T21:49:24.380Z,2025-03-18,16:51:12
+RtjK6t8AvXqzLOY75rny,2025-03-21,19:15:00,St Mary's Gaels,Vanderbilt Commodores,1388,1435,Vanderbilt Commodores,1435,away,+4.5,-115,betmgm,2025-03-18T21:49:24.380Z,2025-03-18,16:51:12
+ost0ykNFJVE3MmvnA1b6,2025-03-21,20:35:00,Maryland Terrapins,Grand Canyon Antelopes,1268,1213,Maryland Terrapins,1268,home,-10.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+ost0ykNFJVE3MmvnA1b6,2025-03-21,20:35:00,Maryland Terrapins,Grand Canyon Antelopes,1268,1213,Grand Canyon Antelopes,1213,away,+10.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+E5WP4NGFejeUx1jqQcOE,2025-03-21,22:50:00,Florida Gators,Norfolk State,1196,1313,Florida Gators,1196,home,-28.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+E5WP4NGFejeUx1jqQcOE,2025-03-21,22:50:00,Florida Gators,Norfolk State,1196,1313,Norfolk State,1313,away,+28.5,-110,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+hzMxDJlGe0lV10Tg58RZ,2025-03-21,23:10:00,Kentucky Wildcats,Troy State Trojans,1246,1407,Kentucky Wildcats,1246,home,-11.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+hzMxDJlGe0lV10Tg58RZ,2025-03-21,23:10:00,Kentucky Wildcats,Troy State Trojans,1246,1407,Troy State Trojans,1407,away,+11.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+0RI96Mj9J5YwRGkwDbAJ,2025-03-21,23:25:00,Marquette Golden Eagles,New Mexico Lobos,1266,1307,Marquette Golden Eagles,1266,home,-3.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+0RI96Mj9J5YwRGkwDbAJ,2025-03-21,23:25:00,Marquette Golden Eagles,New Mexico Lobos,1266,1307,New Mexico Lobos,1307,away,+3.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+PUkCh53nNlSqgCgmY47k,2025-03-21,23:35:00,Arizona Wildcats,Akron Zips,1112,1103,Arizona Wildcats,1112,home,-14.5,-105,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12
+PUkCh53nNlSqgCgmY47k,2025-03-21,23:35:00,Arizona Wildcats,Akron Zips,1112,1103,Akron Zips,1103,away,+14.5,-115,betmgm,2025-03-18T21:49:51.000Z,2025-03-18,16:51:12

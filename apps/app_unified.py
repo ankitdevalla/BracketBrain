@@ -36,8 +36,26 @@ st.markdown('<meta name="google-site-verification" content="MvzMZFiCbHt8maCA4Ev7
 # Inject mobile detection JavaScript
 inject_mobile_js()
 
-creds_json = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
-creds_dict = json.loads(creds_json)
+# Access the credentials properly
+try:
+    # Get the credentials from secrets
+    creds_from_secrets = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
+    
+    # Check the type and handle accordingly
+    if isinstance(creds_from_secrets, dict):
+        # It's already a dictionary-like object (AttrDict), convert to standard dict
+        creds_dict = dict(creds_from_secrets)
+        print("Successfully loaded GCP credentials as dictionary")
+    else:
+        # It's a string, parse it as JSON
+        creds_dict = json.loads(creds_from_secrets)
+        print("Successfully loaded GCP credentials from JSON string")
+    
+except Exception as e:
+    st.error(f"Error loading GCP credentials: {str(e)}")
+    print(f"Error details: {str(e)}")
+    # Provide a fallback to continue without newsletter functionality
+    creds_dict = None
 
 css_path = os.path.join(os.path.dirname(__file__), "..", "assets", "style.css")
 # st.write(f"Checking CSS Path: {css_path}")
@@ -1425,15 +1443,21 @@ def main():
     """, unsafe_allow_html=True)
 
     def save_email_to_gsheet(email):
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-        client = gspread.authorize(creds)
-
-        sheet = client.open("BracketBrain Subscribers").sheet1  
-        sheet.append_row([email, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-
-        return "Email saved!"
+        if creds_dict is None:
+            st.warning("Unable to save your email at this time. Please try again later.")
+            return False
+        
+        try:
+            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            client = gspread.authorize(creds)
+            sheet = client.open("BracketBrain Subscribers").sheet1  
+            sheet.append_row([email, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            return True
+        except Exception as e:
+            st.error(f"Error saving email: {str(e)}")
+            print(f"Email save error: {str(e)}")
+            return False
     
     with st.container():
         st.markdown('<div class="newsletter-container">', unsafe_allow_html=True)
@@ -1445,8 +1469,9 @@ def main():
 
             if submit:
                 if "@" in email and "." in email:
-                    save_email_to_gsheet(email)
-                    st.success("🎉 Thank you for subscribing!")
+                    if save_email_to_gsheet(email):
+                        st.success("🎉 Thank you for subscribing!")
+                    # Error message already displayed in the function if it fails
                 else:
                     st.error("⚠️ Please enter a valid email.")
         

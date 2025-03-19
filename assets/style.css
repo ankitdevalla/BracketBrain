@@ -2,258 +2,271 @@
 
 /* Main container styles to push footer to bottom */
 body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-    padding-bottom: 80px !important;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding-bottom: 80px !important;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .main {
-    flex: 1;
+  flex: 1;
 }
 
 /* Header styles */
 .header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .header-logo {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .header-logo img {
-    margin-right: 15px;
-    height: 50px;
-    width: 50px;
+  margin-right: 15px;
+  height: 50px;
+  width: 50px;
 }
 
 .header-title {
-    font-size: 32px;
-    font-weight: 600;
-    color: #262730;
-    margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  color: #262730;
+  margin: 0;
 }
 
 .header-subtitle {
-    font-size: 16px;
-    color: #555;
-    margin-top: 5px;
+  font-size: 16px;
+  color: #555;
+  margin-top: 5px;
 }
 
 /* Team comparison table styles */
 .comparison-table {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto; /* Allow horizontal scrolling for tables */
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto; /* Allow horizontal scrolling for tables */
 }
 
 .comparison-table table {
-    width: 100% !important;
-    max-width: 100% !important;
-    table-layout: fixed;
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed;
 }
 
-.comparison-table th, .comparison-table td {
-    padding: 8px 12px;
-    text-align: center;
-    word-wrap: break-word; /* Allow text to wrap */
-    overflow-wrap: break-word;
+.comparison-table th,
+.comparison-table td {
+  padding: 8px 12px;
+  text-align: center;
+  word-wrap: break-word; /* Allow text to wrap */
+  overflow-wrap: break-word;
 }
 
-.comparison-table th:first-child, .comparison-table td:first-child {
-    text-align: left;
-    width: 30%;
+.comparison-table th:first-child,
+.comparison-table td:first-child {
+  text-align: left;
+  width: 30%;
 }
 
-.comparison-table th:not(:first-child), .comparison-table td:not(:first-child) {
-    width: 23.33%;
+.comparison-table th:not(:first-child),
+.comparison-table td:not(:first-child) {
+  width: 23.33%;
 }
 
 /* Override Streamlit's default container width */
 .block-container {
-    max-width: 95% !important;
-    padding-top: 1rem;
-    padding-right: 1rem;
-    padding-left: 1rem;
-    padding-bottom: 5rem !important; /* Add extra padding at the bottom */
+  max-width: 95% !important;
+  padding-top: 1rem;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  padding-bottom: 5rem !important; /* Add extra padding at the bottom */
 }
 
 /* Footer styles */
 .footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-color: #090909;
-    color: #c6c7d4;
-    padding: 10px 0;
-    font-size: 14px;
-    transition: left 0.3s, width 0.3s;
-    z-index: 999;
-    margin-top: 30px;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #090909;
+  color: #c6c7d4;
+  padding: 10px 0;
+  font-size: 14px;
+  transition: left 0.3s, width 0.3s;
+  z-index: 999;
+  margin-top: 30px;
 }
 
 /* When sidebar is expanded */
 .sidebar-expanded .footer {
-    left: 240px; /* Streamlit's default sidebar width */
-    width: calc(100% - 240px);
+  left: 240px; /* Streamlit's default sidebar width */
+  width: calc(100% - 240px);
 }
 
 .footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .footer-logo {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .footer-logo img {
-    margin-right: 10px;
-    height: 35px;
-    width: 35px;
+  margin-right: 10px;
+  height: 35px;
+  width: 35px;
 }
 
 .footer-logo span {
-    font-size: 16px;
-    font-weight: 500;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .footer-links a {
-    color: #0066cc;
-    text-decoration: none;
-    margin: 0 10px;
-    font-size: 15px;
+  color: #0066cc;
+  text-decoration: none;
+  margin: 0 10px;
+  font-size: 15px;
 }
 
 .footer-links a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .footer-contact {
-    text-align: right;
-    font-size: 13px;
+  text-align: right;
+  font-size: 13px;
 }
 
 /* Mobile-specific styles */
 @media (max-width: 768px) {
-    /* Header adjustments */
-    .header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .header-logo {
-        flex-direction: column;
-        margin-bottom: 10px;
-    }
-    
-    .header-logo img {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    
-    .header-title {
-        font-size: 24px;
-    }
-    
-    .header-subtitle {
-        font-size: 14px;
-    }
-    
-    /* Table adjustments */
-    .comparison-table th, .comparison-table td {
-        padding: 6px 8px;
-        font-size: 12px;
-    }
-    
-    /* Footer adjustments */
-    .footer {
-        position: relative; /* Change to relative on mobile to avoid covering content */
-        padding: 15px 0;
-    }
-    
-    .footer-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .footer-logo, .footer-links, .footer-contact {
-        margin-bottom: 10px;
-        text-align: center;
-    }
-    
-    .footer-links a {
-        display: inline-block;
-        margin: 5px;
-    }
-    
-    .footer-contact {
-        order: 3;
-    }
-    
-    /* For mobile, always take full width regardless of sidebar */
-    .sidebar-expanded .footer {
-        left: 0;
-        width: 100%;
-    }
-    
-    /* Fix Streamlit components on mobile */
-    .stButton button {
-        width: 100%;
-    }
-    
-    /* Make columns stack on mobile */
-    div.row-widget.stHorizontal {
-        flex-wrap: wrap !important;
-    }
-    
-    div.row-widget.stHorizontal > div {
-        flex: 1 1 100% !important;
-        width: 100% !important;
-        min-width: 100% !important;
-        margin-bottom: 20px;
-    }
-    
-    /* Adjust padding for mobile */
-    .block-container {
-        padding: 1rem 0.5rem 5rem 0.5rem !important;
-    }
-    
-    /* Ensure text doesn't overflow */
-    p, h1, h2, h3, h4, h5, h6, div {
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-    }
+  /* Header adjustments */
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-logo {
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+
+  .header-logo img {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .header-title {
+    font-size: 24px;
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+  }
+
+  /* Table adjustments */
+  .comparison-table th,
+  .comparison-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  /* Footer adjustments */
+  .footer {
+    position: relative; /* Change to relative on mobile to avoid covering content */
+    padding: 15px 0;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-logo,
+  .footer-links,
+  .footer-contact {
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .footer-links a {
+    display: inline-block;
+    margin: 5px;
+  }
+
+  .footer-contact {
+    order: 3;
+  }
+
+  /* For mobile, always take full width regardless of sidebar */
+  .sidebar-expanded .footer {
+    left: 0;
+    width: 100%;
+  }
+
+  /* Fix Streamlit components on mobile */
+  .stButton button {
+    width: 100%;
+  }
+
+  /* Make columns stack on mobile */
+  div.row-widget.stHorizontal {
+    flex-wrap: wrap !important;
+  }
+
+  div.row-widget.stHorizontal > div {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    margin-bottom: 20px;
+  }
+
+  /* Adjust padding for mobile */
+  .block-container {
+    padding: 1rem 0.5rem 5rem 0.5rem !important;
+  }
+
+  /* Ensure text doesn't overflow */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  div {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
 }
 
 /* Mobile-friendly tabs */
 .stTabs [data-baseweb="tab-list"] {
-    flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
 .stTabs [data-baseweb="tab"] {
-    white-space: normal;
-    min-width: 80px;
-    flex-grow: 1;
-    text-align: center;
-    padding: 10px 5px;
+  white-space: normal;
+  min-width: 80px;
+  flex-grow: 1;
+  text-align: center;
+  padding: 10px 5px;
 }
 
 /* Mobile-friendly team profiles */
 @media (max-width: 768px) {
-    .team-profile {
-        padding: 10px;
-        margin-bottom: 15px;
-    }
+  .team-profile {
+    padding: 10px;
+    margin-bottom: 15px;
+  }
 }

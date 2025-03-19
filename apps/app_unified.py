@@ -10,7 +10,8 @@ import base64
 from io import BytesIO
 import json
 import re
-
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import sys
 import os
 # Add the project root to the Python path
@@ -31,6 +32,9 @@ st.set_page_config(
 
 # Inject mobile detection JavaScript
 inject_mobile_js()
+
+creds_json = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
+creds_dict = json.loads(creds_json)
 
 css_path = os.path.join(os.path.dirname(__file__), "..", "assets", "style.css")
 # st.write(f"Checking CSS Path: {css_path}")
@@ -1016,10 +1020,54 @@ def main():
         performance_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
                                                performance_metrics, performance_names, lower_is_better)
         st.write('<div class="comparison-table">' + style_comparison_table(performance_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
+
+    st.markdown("---")  # Add a separator line
     
-    # Add a footer with attribution and version info
-    st.markdown("---")
+    # Newsletter section with custom styling
+    st.markdown("""
+        <style>
+        .newsletter-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 0;
+        }
+        .newsletter-title {
+            color: #1f77b4;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    def save_email_to_gsheet(email):
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
+
+        sheet = client.open("BracketBrain Subscribers").sheet1  
+        sheet.append_row([email, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+
+        return "Email saved!"
     
+    with st.container():
+        st.markdown('<div class="newsletter-container">', unsafe_allow_html=True)
+        st.markdown('<div class="newsletter-title">Subscribe to Our Pre-Tournament Analysis</div>', unsafe_allow_html=True)
+        
+        with st.form("newsletter_form"):
+            email = st.text_input("Enter your email", placeholder="your@email.com")
+            submit = st.form_submit_button("Subscribe", use_container_width=True)
+
+            if submit:
+                if "@" in email and "." in email:
+                    save_email_to_gsheet(email)
+                    st.success("🎉 Thank you for subscribing!")
+                else:
+                    st.error("⚠️ Please enter a valid email.")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
     # Adjust footer based on mobile or desktop
     if is_mobile():
         footer_html = """

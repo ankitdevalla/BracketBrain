@@ -37,6 +37,7 @@ st.markdown('<meta name="google-site-verification" content="MvzMZFiCbHt8maCA4Ev7
 inject_mobile_js()
 
 creds_json = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
+print(creds_json)
 creds_dict = json.loads(creds_json)
 
 css_path = os.path.join(os.path.dirname(__file__), "..", "assets", "style.css")

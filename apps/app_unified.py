@@ -29,6 +29,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Add Google Search Console verification meta tag
+st.markdown('<meta name="google-site-verification" content="MvzMZFiCbHt8maCA4Ev7yoOnFNDqoZcPxSWelmwRcjQ" />', unsafe_allow_html=True)
+
 # Inject mobile detection JavaScript
 inject_mobile_js()
 

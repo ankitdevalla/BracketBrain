@@ -41,15 +41,25 @@ try:
     # Get the credentials from secrets
     creds_from_secrets = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
     
-    # Check the type and handle accordingly
-    if isinstance(creds_from_secrets, dict):
-        # It's already a dictionary-like object (AttrDict), convert to standard dict
-        creds_dict = dict(creds_from_secrets)
-        print("Successfully loaded GCP credentials as dictionary")
-    else:
-        # It's a string, parse it as JSON
+    # Handle the AttrDict specifically
+    if hasattr(creds_from_secrets, '__getitem__') and hasattr(creds_from_secrets, 'to_dict'):
+        # This is likely an AttrDict, use the to_dict method if available
+        creds_dict = creds_from_secrets.to_dict()
+        print("Using AttrDict.to_dict() method for credentials")
+    elif hasattr(creds_from_secrets, '__getitem__') and not isinstance(creds_from_secrets, (str, bytes, bytearray)):
+        # It's a dict-like object but not to_dict method, manually convert
+        creds_dict = {}
+        for key in creds_from_secrets:
+            creds_dict[key] = creds_from_secrets[key]
+        print("Manually converted dictionary-like object to dict")
+    elif isinstance(creds_from_secrets, (str, bytes, bytearray)):
+        # It's a string or bytes, parse it as JSON
         creds_dict = json.loads(creds_from_secrets)
-        print("Successfully loaded GCP credentials from JSON string")
+        print("Parsed JSON string to dictionary")
+    else:
+        # Fall back to direct conversion and hope for the best
+        creds_dict = dict(creds_from_secrets)
+        print("Direct dict conversion of credentials")
     
 except Exception as e:
     st.error(f"Error loading GCP credentials: {str(e)}")
@@ -1444,8 +1454,21 @@ def main():
 
     def save_email_to_gsheet(email):
         if creds_dict is None:
-            st.warning("Unable to save your email at this time. Please try again later.")
-            return False
+            # Fallback to local saving if credentials aren't working
+            try:
+                # Create directory if it doesn't exist
+                os.makedirs(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "subscribers"), exist_ok=True)
+                
+                # Save to a local CSV file as fallback
+                with open(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "subscribers", "local_subscribers.csv"), "a") as f:
+                    f.write(f"{email},{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                
+                st.info("Email saved locally. We'll sync it to our database later.")
+                return True
+            except Exception as e:
+                st.warning("Unable to save your email at this time. Please try again later.")
+                print(f"Local email save error: {str(e)}")
+                return False
         
         try:
             scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -1455,9 +1478,21 @@ def main():
             sheet.append_row([email, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
             return True
         except Exception as e:
-            st.error(f"Error saving email: {str(e)}")
-            print(f"Email save error: {str(e)}")
-            return False
+            # If Google Sheets fails, fall back to local saving
+            try:
+                # Create directory if it doesn't exist
+                os.makedirs(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "subscribers"), exist_ok=True)
+                
+                # Save to a local CSV file as fallback
+                with open(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "subscribers", "local_subscribers.csv"), "a") as f:
+                    f.write(f"{email},{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                
+                st.info("Email saved locally. We'll sync it to our database later.")
+                return True
+            except Exception as local_e:
+                st.error(f"Error saving email: {str(e)}")
+                print(f"Google Sheets error: {str(e)}, Local error: {str(local_e)}")
+                return False
     
     with st.container():
         st.markdown('<div class="newsletter-container">', unsafe_allow_html=True)

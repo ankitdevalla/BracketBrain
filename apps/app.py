@@ -92,14 +92,14 @@ def load_data():
     # Load enhanced stats
     enhanced_stats = pd.read_csv("../pre_tourney_data/EnhancedTournamentStats.csv")
     
-    # Load KenPom rankings
-    kenpom_rankings = pd.read_csv("../pre_tourney_data/KenPom-Rankings-Updated.csv")
-    kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
-    kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
-    
     # Get the most recent season data
     latest_season = enhanced_stats['Season'].max()
     current_stats = enhanced_stats[enhanced_stats['Season'] == latest_season]
+
+    # Load KenPom rankings for the current season shown in the app.
+    kenpom_rankings = pd.read_csv("../pre_tourney_data/KenPom-Rankings-Updated.csv")
+    kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == latest_season]
+    kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
     
     # Merge KenPom rankings with current stats
     current_stats = current_stats.merge(
@@ -127,12 +127,12 @@ def load_data():
 def load_model():
     try:
         # Try to load the model with tempo features first
-        model = joblib.load('../models/final_model_py2.pkl')
+        model = joblib.load('../models/final_model_2026.pkl')
         # feature_names = np.load('scripts/feature_names_with_tempo.npy', allow_pickle=True)
-        st.sidebar.success("Using tempo model v2")
+        st.sidebar.success("Using 2026 enhanced model")
         return model
     except Exception as e:
-        st.sidebar.warning(f"Could not load model with tempo: {str(e)}")
+        st.sidebar.warning(f"Could not load 2026 enhanced model: {str(e)}")
         try:
             # Fall back to original model if needed
             model = joblib.load('../models/final_model.pkl')
@@ -262,6 +262,10 @@ def main():
     # Get team stats
     team1_stats = current_stats[current_stats['TeamName'] == team1_name].iloc[0]
     team2_stats = current_stats[current_stats['TeamName'] == team2_name].iloc[0]
+
+    if team1_stats['TeamID'] == team2_stats['TeamID']:
+        st.warning("Select two different teams to compare. BracketBrain does not support a team playing itself.")
+        return
     
     # Button to make prediction
     if st.sidebar.button("Predict Winner"):
@@ -269,18 +273,11 @@ def main():
             st.error("Model not loaded. Please check if the model file exists.")
             return
         
-        # Create features for prediction with consistent ordering
-        if team1_seed > team2_seed:
-            # Swap teams so that the better seed comes first.
-            X = create_matchup_features(team2_stats, team1_stats, team2_seed, team1_seed)
-            # The model now predicts the probability that the originally better-seeded team (team2) wins.
-            prob_better_first = model.predict_proba(X)[0][1]
-            # The win probability for the originally chosen team1 is 1 - that probability.
-            win_probability = 1 - prob_better_first
-        else:
-            # No swap needed: team1 is the better (or equal) seed.
-            X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed)
-            win_probability = model.predict_proba(X)[0][1]
+        X = create_matchup_features(team1_stats, team2_stats, team1_seed, team2_seed)
+        X_swapped = create_matchup_features(team2_stats, team1_stats, team2_seed, team1_seed)
+        team1_win_prob = model.predict_proba(X)[0][1]
+        team2_win_prob = model.predict_proba(X_swapped)[0][1]
+        win_probability = (team1_win_prob + (1 - team2_win_prob)) / 2
 
         # Display prediction
         col1, col2 = st.columns(2)

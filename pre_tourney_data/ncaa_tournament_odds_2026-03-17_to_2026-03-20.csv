@@ -1,0 +1,119 @@
+game_id,game_date,game_time,home_team,away_team,home_team_id,away_team_id,team,team_id,team_type,price,sportsbook,last_updated,fetch_date,fetch_time,market_type,handicap
+JDgN4XMWq9mv4ddjhBsB,2026-03-17,22:00:00,George Mason Patriots,Liberty Flames,1206,1251.0,George Mason Patriots,1206.0,home,-220,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+JDgN4XMWq9mv4ddjhBsB,2026-03-17,22:00:00,George Mason Patriots,Liberty Flames,1206,1251.0,Liberty Flames,1251.0,away,+180,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+N8utG0ITI70L85rv1F5D,2026-03-17,22:40:00,Howard Bison,Maryland Baltimore County Retrievers,1224,1420.0,Howard Bison,1224.0,home,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+N8utG0ITI70L85rv1F5D,2026-03-17,22:40:00,Howard Bison,Maryland Baltimore County Retrievers,1224,1420.0,Maryland Baltimore County Retrievers,1420.0,away,-118,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+HUcvy6apBoEJrhtSewJJ,2026-03-17,23:00:00,Wichita State Shockers,Wyoming Cowboys,1455,1461.0,Wichita State Shockers,1455.0,home,-275,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+HUcvy6apBoEJrhtSewJJ,2026-03-17,23:00:00,Wichita State Shockers,Wyoming Cowboys,1455,1461.0,Wyoming Cowboys,1461.0,away,+220,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+kn3TjP9JuSUWSZwZiz18,2026-03-17,23:00:00,Yale Bulldogs,UNC Wilmington Seahawks,1463,1423.0,Yale Bulldogs,1463.0,home,-200,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+kn3TjP9JuSUWSZwZiz18,2026-03-17,23:00:00,Yale Bulldogs,UNC Wilmington Seahawks,1463,1423.0,UNC Wilmington Seahawks,1423.0,away,+164,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+gQyBB4uAy1w5guFVicuR,2026-03-18,00:00:00,Oklahoma State Cowboys,Davidson Wildcats,1328,1172.0,Oklahoma State Cowboys,1328.0,home,-330,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+gQyBB4uAy1w5guFVicuR,2026-03-18,00:00:00,Oklahoma State Cowboys,Davidson Wildcats,1328,1172.0,Davidson Wildcats,1172.0,away,+260,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+LXqWhGWgtV2ezVleV1Ms,2026-03-18,01:00:00,Tulsa Golden Hurricane,Stephen F Austin Lumberjacks,1409,,Tulsa Golden Hurricane,1409.0,home,-275,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+LXqWhGWgtV2ezVleV1Ms,2026-03-18,01:00:00,Tulsa Golden Hurricane,Stephen F Austin Lumberjacks,1409,,Stephen F Austin Lumberjacks,,away,+220,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+ldpye6NrLJqsPTCbDKuk,2026-03-18,01:15:00,North Carolina State Wolfpack,Texas Longhorns,1301,1400.0,North Carolina State Wolfpack,1301.0,home,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+ldpye6NrLJqsPTCbDKuk,2026-03-18,01:15:00,North Carolina State Wolfpack,Texas Longhorns,1301,1400.0,Texas Longhorns,1400.0,away,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+snpmEQ7gPIMW23j27qgh,2026-03-18,02:00:00,Seattle Redhawks,Saint Thomas Tommies,1370,,Seattle Redhawks,1370.0,home,-134,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+snpmEQ7gPIMW23j27qgh,2026-03-18,02:00:00,Seattle Redhawks,Saint Thomas Tommies,1370,,Saint Thomas Tommies,,away,+112,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+yJfGgjBTJuSvvHr2W9zd,2026-03-18,02:00:00,Auburn Tigers,South Alabama Jaguars,1120,1104.0,Auburn Tigers,1120.0,home,-2500,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+yJfGgjBTJuSvvHr2W9zd,2026-03-18,02:00:00,Auburn Tigers,South Alabama Jaguars,1120,1104.0,South Alabama Jaguars,1104.0,away,+1100,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+UsckniIXtrOIleKn5Npu,2026-03-18,03:00:00,UC Irvine Anteaters,UNLV Runnin' Rebels,1414,1424.0,UC Irvine Anteaters,1414.0,home,-142,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+UsckniIXtrOIleKn5Npu,2026-03-18,03:00:00,UC Irvine Anteaters,UNLV Runnin' Rebels,1414,1424.0,UNLV Runnin' Rebels,1424.0,away,+118,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+cJPE53j9pxTZ7qkSbsBW,2026-03-18,22:40:00,Lehigh Mountain Hawks,Prairie View A&M Panthers,1250,1341.0,Lehigh Mountain Hawks,1250.0,home,-172,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+cJPE53j9pxTZ7qkSbsBW,2026-03-18,22:40:00,Lehigh Mountain Hawks,Prairie View A&M Panthers,1250,1341.0,Prairie View A&M Panthers,1341.0,away,+142,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+1536I5jNPkCHBvo64I9g,2026-03-18,23:00:00,Wake Forest Demon Deacons,Navy Midshipmen,1448,1298.0,Wake Forest Demon Deacons,1448.0,home,-650,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+1536I5jNPkCHBvo64I9g,2026-03-18,23:00:00,Wake Forest Demon Deacons,Navy Midshipmen,1448,1298.0,Navy Midshipmen,1298.0,away,+460,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+JAde3xecml5Um16OXVDU,2026-03-19,00:00:00,Utah Valley Wolverines,George Washington Revolutionaries,1428,1186.0,Utah Valley Wolverines,1428.0,home,-130,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+JAde3xecml5Um16OXVDU,2026-03-19,00:00:00,Utah Valley Wolverines,George Washington Revolutionaries,1428,1186.0,George Washington Revolutionaries,1186.0,away,+108,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+Lr0sHUXTXV0IQcoCyy9c,2026-03-19,00:00:00,Illinois State Redbirds,Kent State Golden Flashes,1228,1245.0,Illinois State Redbirds,1228.0,home,-240,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+Lr0sHUXTXV0IQcoCyy9c,2026-03-19,00:00:00,Illinois State Redbirds,Kent State Golden Flashes,1228,1245.0,Kent State Golden Flashes,1245.0,away,+195,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+Bkk7aw8Dp8uCkah3peMV,2026-03-19,01:00:00,New Mexico Lobos,Sam Houston State Bearkats,1307,1222.0,New Mexico Lobos,1307.0,home,-650,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+Bkk7aw8Dp8uCkah3peMV,2026-03-19,01:00:00,New Mexico Lobos,Sam Houston State Bearkats,1307,1222.0,Sam Houston State Bearkats,1222.0,away,+460,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+KnsZvmeWPGM5qKIaXV1O,2026-03-19,01:00:00,Bradley Braves,Dayton Flyers,1133,1173.0,Bradley Braves,1133.0,home,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+KnsZvmeWPGM5qKIaXV1O,2026-03-19,01:00:00,Bradley Braves,Dayton Flyers,1133,1173.0,Dayton Flyers,1173.0,away,-118,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+RKFbbKqCff6CX9SlkgRY,2026-03-19,01:15:00,Southern Methodist Mustangs,Miami (OH) RedHawks,1374,1275.0,Southern Methodist Mustangs,1374.0,home,-310,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+RKFbbKqCff6CX9SlkgRY,2026-03-19,01:15:00,Southern Methodist Mustangs,Miami (OH) RedHawks,1374,1275.0,Miami (OH) RedHawks,1275.0,away,+245,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+6FSfwkO1uOOfwc1VEX8q,2026-03-19,02:00:00,Nevada Wolf Pack,Murray State Racers,1305,1293.0,Nevada Wolf Pack,1305.0,home,-360,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+6FSfwkO1uOOfwc1VEX8q,2026-03-19,02:00:00,Nevada Wolf Pack,Murray State Racers,1305,1293.0,Murray State Racers,1293.0,away,+280,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+f57Hcf3BHPu2NtdHzjD5,2026-03-19,03:00:00,California Golden Bears,UIC Flames,1143,,California Golden Bears,1143.0,home,-205,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+f57Hcf3BHPu2NtdHzjD5,2026-03-19,03:00:00,California Golden Bears,UIC Flames,1143,,UIC Flames,,away,+168,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,moneyline,
+gQOwQ3kAQuspcRtHRoTl,2026-03-19,03:00:00,Colorado State Rams,St. Joseph's Hawks,1161,,Colorado State Rams,1161.0,home,-227,fanduel,2026-03-17T05:54:43.456Z,2026-03-16,22:57:43,moneyline,
+gQOwQ3kAQuspcRtHRoTl,2026-03-19,03:00:00,Colorado State Rams,St. Joseph's Hawks,1161,,St. Joseph's Hawks,,away,+184,fanduel,2026-03-17T05:54:43.456Z,2026-03-16,22:57:43,moneyline,
+Vsna6wZrq1jwMrCQo2sA,2026-03-19,16:15:00,Ohio State Buckeyes,TCU Horned Frogs,1326,1395.0,Ohio State Buckeyes,1326.0,home,-146,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+Vsna6wZrq1jwMrCQo2sA,2026-03-19,16:15:00,Ohio State Buckeyes,TCU Horned Frogs,1326,1395.0,TCU Horned Frogs,1395.0,away,+122,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+zYNiyH9IjaKJF98sFrOr,2026-03-19,16:40:00,Nebraska Cornhuskers,Troy State Trojans,1304,1407.0,Nebraska Cornhuskers,1304.0,home,-1250,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+zYNiyH9IjaKJF98sFrOr,2026-03-19,16:40:00,Nebraska Cornhuskers,Troy State Trojans,1304,1407.0,Troy State Trojans,1407.0,away,+740,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+V404wm5nhdjP5gKoXFfK,2026-03-19,17:30:00,Louisville Cardinals,South Florida Bulls,1257,1378.0,Louisville Cardinals,1257.0,home,-230,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+V404wm5nhdjP5gKoXFfK,2026-03-19,17:30:00,Louisville Cardinals,South Florida Bulls,1257,1378.0,South Florida Bulls,1378.0,away,+188,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+rRoR1kS0SZ3PRI8XVBGZ,2026-03-19,17:50:00,Wisconsin Badgers,High Point Panthers,1458,1219.0,Wisconsin Badgers,1458.0,home,-530,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+rRoR1kS0SZ3PRI8XVBGZ,2026-03-19,17:50:00,Wisconsin Badgers,High Point Panthers,1458,1219.0,High Point Panthers,1219.0,away,+390,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+yz5TzSk6QxiasQzazNIL,2026-03-19,18:50:00,Duke Blue Devils,Siena Saints,1181,1373.0,Duke Blue Devils,1181.0,home,-100000,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+yz5TzSk6QxiasQzazNIL,2026-03-19,18:50:00,Duke Blue Devils,Siena Saints,1181,1373.0,Siena Saints,1373.0,away,+6500,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+LEcSG3eigLfxpV85czaU,2026-03-19,19:15:00,Vanderbilt Commodores,McNeese State Cowboys,1435,1270.0,Vanderbilt Commodores,1435.0,home,-750,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+LEcSG3eigLfxpV85czaU,2026-03-19,19:15:00,Vanderbilt Commodores,McNeese State Cowboys,1435,1270.0,McNeese State Cowboys,1270.0,away,+520,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+RDqpB4conoiC3CA65P6J,2026-03-19,20:05:00,Michigan State Spartans,North Dakota State Bison,1277,1295.0,Michigan State Spartans,1277.0,home,-2500,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+RDqpB4conoiC3CA65P6J,2026-03-19,20:05:00,Michigan State Spartans,North Dakota State Bison,1277,1295.0,North Dakota State Bison,1295.0,away,+1100,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+PBECiqACG7iZoo1QQjzj,2026-03-19,20:25:00,Arkansas Razorbacks,Hawaii Rainbow Warriors,1116,1218.0,Arkansas Razorbacks,1116.0,home,-1700,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+PBECiqACG7iZoo1QQjzj,2026-03-19,20:25:00,Arkansas Razorbacks,Hawaii Rainbow Warriors,1116,1218.0,Hawaii Rainbow Warriors,1218.0,away,+890,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+6ehLgWhfPbERs5LirQHV,2026-03-19,22:50:00,North Carolina Tar Heels,VCU Rams,1314,1433.0,North Carolina Tar Heels,1314.0,home,-140,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+6ehLgWhfPbERs5LirQHV,2026-03-19,22:50:00,North Carolina Tar Heels,VCU Rams,1314,1433.0,VCU Rams,1433.0,away,+116,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+mfCdbsXlqYEjpSCG99zl,2026-03-19,23:35:00,St Mary's Gaels,Texas A&M Aggies,1388,1401.0,St Mary's Gaels,1388.0,home,-162,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+mfCdbsXlqYEjpSCG99zl,2026-03-19,23:35:00,St Mary's Gaels,Texas A&M Aggies,1388,1401.0,Texas A&M Aggies,1401.0,away,+134,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,moneyline,
+JDgN4XMWq9mv4ddjhBsB,2026-03-17,22:00:00,George Mason Patriots,Liberty Flames,1206,1251.0,George Mason Patriots,1206.0,home,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-5.5
+JDgN4XMWq9mv4ddjhBsB,2026-03-17,22:00:00,George Mason Patriots,Liberty Flames,1206,1251.0,Liberty Flames,1251.0,away,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+5.5
+N8utG0ITI70L85rv1F5D,2026-03-17,22:40:00,Howard Bison,Maryland Baltimore County Retrievers,1224,1420.0,Howard Bison,1224.0,home,-120,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+1.5
+N8utG0ITI70L85rv1F5D,2026-03-17,22:40:00,Howard Bison,Maryland Baltimore County Retrievers,1224,1420.0,Maryland Baltimore County Retrievers,1420.0,away,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-1.5
+HUcvy6apBoEJrhtSewJJ,2026-03-17,23:00:00,Wichita State Shockers,Wyoming Cowboys,1455,1461.0,Wichita State Shockers,1455.0,home,-120,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-6.5
+HUcvy6apBoEJrhtSewJJ,2026-03-17,23:00:00,Wichita State Shockers,Wyoming Cowboys,1455,1461.0,Wyoming Cowboys,1461.0,away,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+6.5
+kn3TjP9JuSUWSZwZiz18,2026-03-17,23:00:00,Yale Bulldogs,UNC Wilmington Seahawks,1463,1423.0,Yale Bulldogs,1463.0,home,-120,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-4.5
+kn3TjP9JuSUWSZwZiz18,2026-03-17,23:00:00,Yale Bulldogs,UNC Wilmington Seahawks,1463,1423.0,UNC Wilmington Seahawks,1423.0,away,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+4.5
+gQyBB4uAy1w5guFVicuR,2026-03-18,00:00:00,Oklahoma State Cowboys,Davidson Wildcats,1328,1172.0,Oklahoma State Cowboys,1328.0,home,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-8.5
+gQyBB4uAy1w5guFVicuR,2026-03-18,00:00:00,Oklahoma State Cowboys,Davidson Wildcats,1328,1172.0,Davidson Wildcats,1172.0,away,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+8.5
+LXqWhGWgtV2ezVleV1Ms,2026-03-18,01:00:00,Tulsa Golden Hurricane,Stephen F Austin Lumberjacks,1409,,Tulsa Golden Hurricane,1409.0,home,-105,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-7.5
+LXqWhGWgtV2ezVleV1Ms,2026-03-18,01:00:00,Tulsa Golden Hurricane,Stephen F Austin Lumberjacks,1409,,Stephen F Austin Lumberjacks,,away,-115,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+7.5
+ldpye6NrLJqsPTCbDKuk,2026-03-18,01:15:00,North Carolina State Wolfpack,Texas Longhorns,1301,1400.0,North Carolina State Wolfpack,1301.0,home,-124,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+1.5
+ldpye6NrLJqsPTCbDKuk,2026-03-18,01:15:00,North Carolina State Wolfpack,Texas Longhorns,1301,1400.0,Texas Longhorns,1400.0,away,+102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-1.5
+snpmEQ7gPIMW23j27qgh,2026-03-18,02:00:00,Seattle Redhawks,Saint Thomas Tommies,1370,,Seattle Redhawks,1370.0,home,-104,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-2.5
+snpmEQ7gPIMW23j27qgh,2026-03-18,02:00:00,Seattle Redhawks,Saint Thomas Tommies,1370,,Saint Thomas Tommies,,away,-118,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+2.5
+yJfGgjBTJuSvvHr2W9zd,2026-03-18,02:00:00,Auburn Tigers,South Alabama Jaguars,1120,1104.0,Auburn Tigers,1120.0,home,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-17.5
+yJfGgjBTJuSvvHr2W9zd,2026-03-18,02:00:00,Auburn Tigers,South Alabama Jaguars,1120,1104.0,South Alabama Jaguars,1104.0,away,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+17.5
+UsckniIXtrOIleKn5Npu,2026-03-18,03:00:00,UC Irvine Anteaters,UNLV Runnin' Rebels,1414,1424.0,UC Irvine Anteaters,1414.0,home,-115,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-2.5
+UsckniIXtrOIleKn5Npu,2026-03-18,03:00:00,UC Irvine Anteaters,UNLV Runnin' Rebels,1414,1424.0,UNLV Runnin' Rebels,1424.0,away,-105,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+2.5
+cJPE53j9pxTZ7qkSbsBW,2026-03-18,22:40:00,Lehigh Mountain Hawks,Prairie View A&M Panthers,1250,1341.0,Lehigh Mountain Hawks,1250.0,home,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-3.5
+cJPE53j9pxTZ7qkSbsBW,2026-03-18,22:40:00,Lehigh Mountain Hawks,Prairie View A&M Panthers,1250,1341.0,Prairie View A&M Panthers,1341.0,away,-110,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+3.5
+1536I5jNPkCHBvo64I9g,2026-03-18,23:00:00,Wake Forest Demon Deacons,Navy Midshipmen,1448,1298.0,Wake Forest Demon Deacons,1448.0,home,-114,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-11.5
+1536I5jNPkCHBvo64I9g,2026-03-18,23:00:00,Wake Forest Demon Deacons,Navy Midshipmen,1448,1298.0,Navy Midshipmen,1298.0,away,-106,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+11.5
+JAde3xecml5Um16OXVDU,2026-03-19,00:00:00,Utah Valley Wolverines,George Washington Revolutionaries,1428,1186.0,Utah Valley Wolverines,1428.0,home,-120,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-1.5
+JAde3xecml5Um16OXVDU,2026-03-19,00:00:00,Utah Valley Wolverines,George Washington Revolutionaries,1428,1186.0,George Washington Revolutionaries,1186.0,away,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+1.5
+Lr0sHUXTXV0IQcoCyy9c,2026-03-19,00:00:00,Illinois State Redbirds,Kent State Golden Flashes,1228,1245.0,Illinois State Redbirds,1228.0,home,-105,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-6.5
+Lr0sHUXTXV0IQcoCyy9c,2026-03-19,00:00:00,Illinois State Redbirds,Kent State Golden Flashes,1228,1245.0,Kent State Golden Flashes,1245.0,away,-115,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+6.5
+Bkk7aw8Dp8uCkah3peMV,2026-03-19,01:00:00,New Mexico Lobos,Sam Houston State Bearkats,1307,1222.0,New Mexico Lobos,1307.0,home,-112,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-11.5
+Bkk7aw8Dp8uCkah3peMV,2026-03-19,01:00:00,New Mexico Lobos,Sam Houston State Bearkats,1307,1222.0,Sam Houston State Bearkats,1222.0,away,-108,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+11.5
+KnsZvmeWPGM5qKIaXV1O,2026-03-19,01:00:00,Bradley Braves,Dayton Flyers,1133,1173.0,Bradley Braves,1133.0,home,-115,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+1.5
+KnsZvmeWPGM5qKIaXV1O,2026-03-19,01:00:00,Bradley Braves,Dayton Flyers,1133,1173.0,Dayton Flyers,1173.0,away,-105,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-1.5
+RKFbbKqCff6CX9SlkgRY,2026-03-19,01:15:00,Southern Methodist Mustangs,Miami (OH) RedHawks,1374,1275.0,Southern Methodist Mustangs,1374.0,home,-120,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-6.5
+RKFbbKqCff6CX9SlkgRY,2026-03-19,01:15:00,Southern Methodist Mustangs,Miami (OH) RedHawks,1374,1275.0,Miami (OH) RedHawks,1275.0,away,-102,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+6.5
+6FSfwkO1uOOfwc1VEX8q,2026-03-19,02:00:00,Nevada Wolf Pack,Murray State Racers,1305,1293.0,Nevada Wolf Pack,1305.0,home,-120,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-8.5
+6FSfwkO1uOOfwc1VEX8q,2026-03-19,02:00:00,Nevada Wolf Pack,Murray State Racers,1305,1293.0,Murray State Racers,1293.0,away,-102,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+8.5
+f57Hcf3BHPu2NtdHzjD5,2026-03-19,03:00:00,California Golden Bears,UIC Flames,1143,,California Golden Bears,1143.0,home,-105,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,-5.5
+f57Hcf3BHPu2NtdHzjD5,2026-03-19,03:00:00,California Golden Bears,UIC Flames,1143,,UIC Flames,,away,-115,fanduel,2026-03-17T05:55:06.000Z,2026-03-16,22:57:43,spread,+5.5
+gQOwQ3kAQuspcRtHRoTl,2026-03-19,03:00:00,Colorado State Rams,St. Joseph's Hawks,1161,,Colorado State Rams,1161.0,home,-120,fanduel,2026-03-17T05:54:43.456Z,2026-03-16,22:57:43,spread,-5.5
+gQOwQ3kAQuspcRtHRoTl,2026-03-19,03:00:00,Colorado State Rams,St. Joseph's Hawks,1161,,St. Joseph's Hawks,,away,-102,fanduel,2026-03-17T05:54:43.456Z,2026-03-16,22:57:43,spread,+5.5
+Vsna6wZrq1jwMrCQo2sA,2026-03-19,16:15:00,Ohio State Buckeyes,TCU Horned Frogs,1326,1395.0,Ohio State Buckeyes,1326.0,home,-110,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-2.5
+Vsna6wZrq1jwMrCQo2sA,2026-03-19,16:15:00,Ohio State Buckeyes,TCU Horned Frogs,1326,1395.0,TCU Horned Frogs,1395.0,away,-110,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+2.5
+zYNiyH9IjaKJF98sFrOr,2026-03-19,16:40:00,Nebraska Cornhuskers,Troy State Trojans,1304,1407.0,Nebraska Cornhuskers,1304.0,home,-102,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-13.5
+zYNiyH9IjaKJF98sFrOr,2026-03-19,16:40:00,Nebraska Cornhuskers,Troy State Trojans,1304,1407.0,Troy State Trojans,1407.0,away,-120,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+13.5
+V404wm5nhdjP5gKoXFfK,2026-03-19,17:30:00,Louisville Cardinals,South Florida Bulls,1257,1378.0,Louisville Cardinals,1257.0,home,-106,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-5.5
+V404wm5nhdjP5gKoXFfK,2026-03-19,17:30:00,Louisville Cardinals,South Florida Bulls,1257,1378.0,South Florida Bulls,1378.0,away,-114,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+5.5
+rRoR1kS0SZ3PRI8XVBGZ,2026-03-19,17:50:00,Wisconsin Badgers,High Point Panthers,1458,1219.0,Wisconsin Badgers,1458.0,home,-104,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-10.5
+rRoR1kS0SZ3PRI8XVBGZ,2026-03-19,17:50:00,Wisconsin Badgers,High Point Panthers,1458,1219.0,High Point Panthers,1219.0,away,-118,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+10.5
+yz5TzSk6QxiasQzazNIL,2026-03-19,18:50:00,Duke Blue Devils,Siena Saints,1181,1373.0,Duke Blue Devils,1181.0,home,-110,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-28.5
+yz5TzSk6QxiasQzazNIL,2026-03-19,18:50:00,Duke Blue Devils,Siena Saints,1181,1373.0,Siena Saints,1373.0,away,-110,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+28.5
+LEcSG3eigLfxpV85czaU,2026-03-19,19:15:00,Vanderbilt Commodores,McNeese State Cowboys,1435,1270.0,Vanderbilt Commodores,1435.0,home,-104,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-11.5
+LEcSG3eigLfxpV85czaU,2026-03-19,19:15:00,Vanderbilt Commodores,McNeese State Cowboys,1435,1270.0,McNeese State Cowboys,1270.0,away,-118,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+11.5
+PBECiqACG7iZoo1QQjzj,2026-03-19,20:25:00,Arkansas Razorbacks,Hawaii Rainbow Warriors,1116,1218.0,Arkansas Razorbacks,1116.0,home,-102,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-15.5
+PBECiqACG7iZoo1QQjzj,2026-03-19,20:25:00,Arkansas Razorbacks,Hawaii Rainbow Warriors,1116,1218.0,Hawaii Rainbow Warriors,1218.0,away,-120,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+15.5
+6ehLgWhfPbERs5LirQHV,2026-03-19,22:50:00,North Carolina Tar Heels,VCU Rams,1314,1433.0,North Carolina Tar Heels,1314.0,home,-108,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-2.5
+6ehLgWhfPbERs5LirQHV,2026-03-19,22:50:00,North Carolina Tar Heels,VCU Rams,1314,1433.0,VCU Rams,1433.0,away,-112,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+2.5
+mfCdbsXlqYEjpSCG99zl,2026-03-19,23:35:00,St Mary's Gaels,Texas A&M Aggies,1388,1401.0,St Mary's Gaels,1388.0,home,-104,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,-3.5
+mfCdbsXlqYEjpSCG99zl,2026-03-19,23:35:00,St Mary's Gaels,Texas A&M Aggies,1388,1401.0,Texas A&M Aggies,1401.0,away,-118,fanduel,2026-03-17T05:55:05.000Z,2026-03-16,22:57:43,spread,+3.5

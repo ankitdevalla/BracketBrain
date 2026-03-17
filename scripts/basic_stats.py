@@ -131,5 +131,5 @@ final_stats = final_stats[cols]
 # Display the columns for verification.
 # print(final_stats.columns())
 
-# Optionally, save the final results to a CSV file.
-final_stats.to_csv("TeamSeasonAverages_with_SoS.csv", index=False)
+# Save to the shared pre-tournament data path used by the rest of the repo.
+final_stats.to_csv("../pre_tourney_data/TeamSeasonAverages_with_SoS.csv", index=False)

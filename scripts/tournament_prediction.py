@@ -331,7 +331,7 @@ grid_search = GridSearchCV(
     param_grid,
     cv=5,
     scoring='roc_auc',
-    n_jobs=-1
+    n_jobs=1
 )
 
 # Fit grid search
@@ -520,6 +520,5 @@ import joblib
 
 # Save the model to a file
 joblib.dump(best_model, '../models/final_model_py2.pkl')
-
 
 

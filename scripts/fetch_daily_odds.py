@@ -116,7 +116,7 @@ def match_team_name(team_name, team_mappings):
     # Return None if no match is found
     return None
 
-def fetch_ncaa_tournament_games(api_key, start_date="2025-03-27", end_date="2025-03-31"):
+def fetch_ncaa_tournament_games(api_key, start_date="2026-03-16", end_date="2026-03-21"):
     """
     Fetch NCAA Tournament games with moneyline and spread odds
     
@@ -135,7 +135,7 @@ def fetch_ncaa_tournament_games(api_key, start_date="2025-03-27", end_date="2025
     next_cursor = None
     all_games = []
     page_num = 1
-    limit = 50  # Number of games per request
+    limit = 100  # Number of games per request
     
     print(f"Fetching NCAA Tournament games from {start_date} to {end_date}...")
     
@@ -149,7 +149,7 @@ def fetch_ncaa_tournament_games(api_key, start_date="2025-03-27", end_date="2025
             "includeOpposingOdds": "true",
             "startsAfter": start_date,
             "startsBefore": end_date,
-            "bookmakerID": 'betmgm',
+            "bookmakerID": 'fanduel',
             "limit": limit
         }
         
@@ -412,8 +412,8 @@ def main():
     parser = argparse.ArgumentParser(description='Fetch NCAA Tournament basketball betting odds')
     parser.add_argument('--api-key', type=str, help='API key for sportsgameodds.com')
     parser.add_argument('--output-dir', type=str, default='../pre_tourney_data', help='Directory to save the output CSV')
-    parser.add_argument('--start-date', type=str, default='2025-03-27', help='Start date in YYYY-MM-DD format')
-    parser.add_argument('--end-date', type=str, default='2025-03-31', help='End date in YYYY-MM-DD format')
+    parser.add_argument('--start-date', type=str, default='2026-03-17', help='Start date in YYYY-MM-DD format')
+    parser.add_argument('--end-date', type=str, default='2026-03-20', help='End date in YYYY-MM-DD format')
     parser.add_argument('--teams-file', type=str, default='../raw_data/MTeams.csv', help='Path to the MTeams.csv file')
     parser.add_argument('--mapping-file', type=str, default='../pre_tourney_data/mapping.json', help='Path to the mapping.json file')
     

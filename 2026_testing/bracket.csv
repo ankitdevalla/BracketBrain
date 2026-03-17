@@ -1,0 +1,65 @@
+Seed,Team,Region
+1,Duke,East
+16,Siena,East
+8,Ohio St,East
+9,TCU,East
+5,St John's,East
+12,Northern Iowa,East
+4,Kansas,East
+13,Cal Baptist,East
+6,Louisville,East
+11,South Florida,East
+3,Michigan St,East
+14,N Dakota St,East
+7,UCLA,East
+10,UCF,East
+2,Connecticut,East
+15,Furman,East
+1,Arizona,West
+16,LIU Brooklyn,West
+8,Villanova,West
+9,Utah St,West
+5,Wisconsin,West
+12,High Point,West
+4,Arkansas,West
+13,Hawaii,West
+6,BYU,West
+11,Texas/NC State,West
+3,Gonzaga,West
+14,Kennesaw,West
+7,Miami FL,West
+10,Missouri,West
+2,Purdue,West
+15,Queens NC,West
+1,Florida,South
+16,Prairie View/Lehigh,South
+8,Clemson,South
+9,Iowa,South
+5,Vanderbilt,South
+12,McNeese St,South
+4,Nebraska,South
+13,Troy,South
+6,North Carolina,South
+11,VCU,South
+3,Illinois,South
+14,Penn,South
+7,St Mary's CA,South
+10,Texas A&M,South
+2,Houston,South
+15,Idaho,South
+1,Michigan,Midwest
+16,UMBC/Howard,Midwest
+8,Georgia,Midwest
+9,St Louis,Midwest
+5,Texas Tech,Midwest
+12,Akron,Midwest
+4,Alabama,Midwest
+13,Hofstra,Midwest
+6,Tennessee,Midwest
+11,Miami OH/SMU,Midwest
+3,Virginia,Midwest
+14,Wright St,Midwest
+7,Kentucky,Midwest
+10,Santa Clara,Midwest
+2,Iowa St,Midwest
+15,Tennessee St,Midwest

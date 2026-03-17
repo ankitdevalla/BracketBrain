@@ -15,8 +15,8 @@ Avg_Blk_diff
 Avg_PF_diff
 Avg_Opp_WinPct_diff
 Last30_WinRatio_diff
-KenPom_diff
 SoS_squared_diff
 SoS_WinPct_interaction
 SoS_Last30_interaction
+KenPom_diff
 KenPom_SoS_interaction

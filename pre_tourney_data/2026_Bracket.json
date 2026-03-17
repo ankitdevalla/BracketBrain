@@ -1,0 +1,274 @@
+{
+  "1103": {
+    "region": "Midwest",
+    "seed": 12
+  },
+  "1104": {
+    "region": "Midwest",
+    "seed": 4
+  },
+  "1112": {
+    "region": "West",
+    "seed": 1
+  },
+  "1116": {
+    "region": "West",
+    "seed": 4
+  },
+  "1140": {
+    "region": "West",
+    "seed": 6
+  },
+  "1155": {
+    "region": "South",
+    "seed": 8
+  },
+  "1163": {
+    "region": "East",
+    "seed": 2
+  },
+  "1181": {
+    "region": "East",
+    "seed": 1
+  },
+  "1196": {
+    "region": "South",
+    "seed": 1
+  },
+  "1202": {
+    "region": "East",
+    "seed": 15
+  },
+  "1208": {
+    "region": "Midwest",
+    "seed": 8
+  },
+  "1211": {
+    "region": "West",
+    "seed": 3
+  },
+  "1218": {
+    "region": "West",
+    "seed": 13
+  },
+  "1219": {
+    "region": "West",
+    "seed": 12
+  },
+  "1220": {
+    "region": "Midwest",
+    "seed": 13
+  },
+  "1222": {
+    "region": "South",
+    "seed": 2
+  },
+  "1224": {
+    "region": "Midwest",
+    "seed": 16
+  },
+  "1225": {
+    "region": "South",
+    "seed": 15
+  },
+  "1228": {
+    "region": "South",
+    "seed": 3
+  },
+  "1234": {
+    "region": "South",
+    "seed": 9
+  },
+  "1235": {
+    "region": "Midwest",
+    "seed": 2
+  },
+  "1242": {
+    "region": "East",
+    "seed": 4
+  },
+  "1244": {
+    "region": "West",
+    "seed": 14
+  },
+  "1246": {
+    "region": "Midwest",
+    "seed": 7
+  },
+  "1250": {
+    "region": "South",
+    "seed": 16
+  },
+  "1254": {
+    "region": "West",
+    "seed": 16
+  },
+  "1257": {
+    "region": "East",
+    "seed": 6
+  },
+  "1270": {
+    "region": "South",
+    "seed": 12
+  },
+  "1274": {
+    "region": "West",
+    "seed": 7
+  },
+  "1275": {
+    "region": "Midwest",
+    "seed": 11
+  },
+  "1276": {
+    "region": "Midwest",
+    "seed": 1
+  },
+  "1277": {
+    "region": "East",
+    "seed": 3
+  },
+  "1281": {
+    "region": "West",
+    "seed": 10
+  },
+  "1295": {
+    "region": "East",
+    "seed": 14
+  },
+  "1301": {
+    "region": "West",
+    "seed": 11
+  },
+  "1304": {
+    "region": "South",
+    "seed": 4
+  },
+  "1314": {
+    "region": "South",
+    "seed": 6
+  },
+  "1320": {
+    "region": "East",
+    "seed": 12
+  },
+  "1326": {
+    "region": "East",
+    "seed": 8
+  },
+  "1335": {
+    "region": "South",
+    "seed": 14
+  },
+  "1341": {
+    "region": "South",
+    "seed": 16
+  },
+  "1345": {
+    "region": "West",
+    "seed": 2
+  },
+  "1365": {
+    "region": "Midwest",
+    "seed": 10
+  },
+  "1373": {
+    "region": "East",
+    "seed": 16
+  },
+  "1374": {
+    "region": "Midwest",
+    "seed": 11
+  },
+  "1378": {
+    "region": "East",
+    "seed": 11
+  },
+  "1385": {
+    "region": "East",
+    "seed": 5
+  },
+  "1387": {
+    "region": "Midwest",
+    "seed": 9
+  },
+  "1388": {
+    "region": "South",
+    "seed": 7
+  },
+  "1395": {
+    "region": "East",
+    "seed": 9
+  },
+  "1397": {
+    "region": "Midwest",
+    "seed": 6
+  },
+  "1398": {
+    "region": "Midwest",
+    "seed": 15
+  },
+  "1400": {
+    "region": "West",
+    "seed": 11
+  },
+  "1401": {
+    "region": "South",
+    "seed": 10
+  },
+  "1403": {
+    "region": "Midwest",
+    "seed": 5
+  },
+  "1407": {
+    "region": "South",
+    "seed": 13
+  },
+  "1416": {
+    "region": "East",
+    "seed": 10
+  },
+  "1417": {
+    "region": "East",
+    "seed": 7
+  },
+  "1420": {
+    "region": "Midwest",
+    "seed": 16
+  },
+  "1429": {
+    "region": "West",
+    "seed": 9
+  },
+  "1433": {
+    "region": "South",
+    "seed": 11
+  },
+  "1435": {
+    "region": "South",
+    "seed": 5
+  },
+  "1437": {
+    "region": "West",
+    "seed": 8
+  },
+  "1438": {
+    "region": "Midwest",
+    "seed": 3
+  },
+  "1458": {
+    "region": "West",
+    "seed": 5
+  },
+  "1460": {
+    "region": "Midwest",
+    "seed": 14
+  },
+  "1465": {
+    "region": "East",
+    "seed": 13
+  },
+  "1474": {
+    "region": "West",
+    "seed": 15
+  }
+}

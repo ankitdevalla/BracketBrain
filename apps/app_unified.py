@@ -20,6 +20,70 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from assets.basketball_logo import get_logo_html, create_basketball_logo
 from mobile_utils import is_mobile, inject_mobile_js
 
+CURRENT_MODEL_FILES = {
+    "basic": "xgb_model_no_seeds_2026.pkl",
+    "basic_kenpom": "xgb_model_no_seeds_kenpom_2026_clean.pkl",
+    "enhanced": "final_model_2026.pkl",
+}
+
+BASIC_FEATURE_ORDER = [
+    "WinPct_diff",
+    "Avg_Score_diff",
+    "Avg_FGM_diff",
+    "Avg_FGA_diff",
+    "Avg_FGM3_diff",
+    "Avg_FGA3_diff",
+    "Avg_FTM_diff",
+    "Avg_FTA_diff",
+    "Avg_OR_diff",
+    "Avg_DR_diff",
+    "Avg_Ast_diff",
+    "Avg_TO_diff",
+    "Avg_Stl_diff",
+    "Avg_Blk_diff",
+    "Avg_PF_diff",
+    "Avg_Opp_WinPct_diff",
+    "Last30_WinRatio_diff",
+    "SoS_squared_diff",
+    "SoS_WinPct_interaction",
+    "SoS_Last30_interaction",
+]
+
+BASIC_KENPOM_FEATURE_ORDER = BASIC_FEATURE_ORDER + [
+    "KenPom_diff",
+    "KenPom_SoS_interaction",
+]
+
+MODEL_DESCRIPTIONS = {
+    "Basic Model": "Season averages, strength of schedule, and recent form. Most willing to entertain upset paths.",
+    "Basic Model + KenPom": "Basic profile plus KenPom context. Cleaner traditional rating view, but weaker on the latest holdouts.",
+    "Enhanced Model": "Seeds, KenPom, and advanced team metrics. Strongest overall 2024/2025 holdout performer.",
+}
+
+DISPLAY_FEATURE_PRIORITY = {
+    "Basic Model": [
+        "WinPct_diff",
+        "Last30_WinRatio_diff",
+        "Avg_Opp_WinPct_diff",
+        "SoS_WinPct_interaction",
+        "SoS_Last30_interaction",
+    ],
+    "Basic Model + KenPom": [
+        "KenPom_diff",
+        "WinPct_diff",
+        "Last30_WinRatio_diff",
+        "Avg_Opp_WinPct_diff",
+        "SoS_WinPct_interaction",
+    ],
+    "Enhanced Model": [
+        "KenPomDiff",
+        "Diff_AdjNetRtg",
+        "Diff_AdjO",
+        "Diff_AdjD",
+        "Diff_SOS_NetRtg",
+    ],
+}
+
 # ------------------------------
 # Page Configuration
 # ------------------------------
@@ -146,7 +210,7 @@ Enter the teams and their seeds to get predictions and detailed team comparisons
 @st.cache_resource
 def load_basic_model():
     try:
-        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_no_seeds.pkl")))
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", CURRENT_MODEL_FILES["basic"])))
         return model
     except Exception as e:
         st.error(f"Error loading basic model: {str(e)}")
@@ -155,7 +219,7 @@ def load_basic_model():
 @st.cache_resource
 def load_basic_kenpom_model():
     try:
-        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "xgb_model_no_seeds_kenpom.pkl")))
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", CURRENT_MODEL_FILES["basic_kenpom"])))
         return model
     except Exception as e:
         st.error(f"Error loading basic model with KenPom: {str(e)}")
@@ -164,7 +228,7 @@ def load_basic_kenpom_model():
 @st.cache_resource
 def load_enhanced_model():
     try:
-        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "final_model_py2.pkl")))
+        model = joblib.load(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", CURRENT_MODEL_FILES["enhanced"])))
         return model
     except Exception as e:
         st.error(f"Error loading enhanced model: {str(e)}")
@@ -202,18 +266,6 @@ def load_data():
     else:
         st.error("❌ `EnhancedTournamentStats.csv` not found! Please check file path and deployment.")
             
-    # Load KenPom rankings
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "KenPom-Rankings-Updated.csv"))
-
-    # Load the CSV if it exists
-    if os.path.exists(csv_path):
-        kenpom_rankings = pd.read_csv(csv_path)
-        kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == 2025]
-        kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
-    else:
-        st.error("❌ `KenPom-Rankings-Updated.csv` not found! Please check file path and deployment.")
-        kenpom_rankings = None
-    
     # Get the most recent season data
     latest_season = basic_stats['Season'].max()
     current_basic_stats = basic_stats[basic_stats['Season'] == latest_season]
@@ -223,6 +275,17 @@ def load_data():
         current_enhanced_stats = enhanced_stats[enhanced_stats['Season'] == latest_season]
     else:
         current_enhanced_stats = current_basic_stats.copy()
+
+    # Load KenPom rankings for the same season the app is using elsewhere.
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "KenPom-Rankings-Updated.csv"))
+
+    if os.path.exists(csv_path):
+        kenpom_rankings = pd.read_csv(csv_path)
+        kenpom_rankings = kenpom_rankings[kenpom_rankings['Season'] == latest_season]
+        kenpom_rankings = kenpom_rankings.rename(columns={'OrdinalRank': 'KenPom'})
+    else:
+        st.error("❌ `KenPom-Rankings-Updated.csv` not found! Please check file path and deployment.")
+        kenpom_rankings = None
     
     # Merge KenPom rankings with current stats if available
     if kenpom_rankings is not None:
@@ -247,17 +310,45 @@ def load_data():
     return teams_df, basic_stats, enhanced_stats, current_basic_stats, current_enhanced_stats, latest_season, seed_matchups
 
 @st.cache_data
-def load_betting_odds_data():
+def load_betting_odds_data(file_version=None):
     """Load NCAA tournament betting odds from CSV file"""
     try:
-        odds_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "ncaa_tournament_odds_latest.csv"))
-        if os.path.exists(odds_path):
-            odds_df = pd.read_csv(odds_path)
-            print(f"Loaded betting odds data with {len(odds_df)} entries")
-            return odds_df
+        _ = file_version
+        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data"))
+        moneyline_path = os.path.join(data_dir, "ncaa_tournament_moneyline_latest.csv")
+        spread_path = os.path.join(data_dir, "ncaa_tournament_spread_latest.csv")
+        combined_path = os.path.join(data_dir, "ncaa_tournament_odds_latest.csv")
+
+        frames = []
+
+        if os.path.exists(moneyline_path):
+            moneyline_df = pd.read_csv(moneyline_path)
+            moneyline_df["market_type"] = "moneyline"
+            if "handicap" not in moneyline_df.columns:
+                moneyline_df["handicap"] = np.nan
+            frames.append(moneyline_df)
+
+        if os.path.exists(spread_path):
+            spread_df = pd.read_csv(spread_path)
+            spread_df["market_type"] = "spread"
+            if "spread" in spread_df.columns and "handicap" not in spread_df.columns:
+                spread_df = spread_df.rename(columns={"spread": "handicap"})
+            frames.append(spread_df)
+
+        if frames:
+            odds_df = pd.concat(frames, ignore_index=True, sort=False)
+        elif os.path.exists(combined_path):
+            odds_df = pd.read_csv(combined_path)
         else:
             st.warning("⚠️ NCAA Tournament odds data not found. Betting analysis will not be available.")
             return None
+
+        for col in ["team_id", "home_team_id", "away_team_id"]:
+            if col in odds_df.columns:
+                odds_df[col] = pd.to_numeric(odds_df[col], errors="coerce")
+
+        print(f"Loaded betting odds data with {len(odds_df)} entries")
+        return odds_df
     except Exception as e:
         st.warning(f"Could not load betting odds data: {str(e)}")
         return None
@@ -265,6 +356,12 @@ def load_betting_odds_data():
 def american_odds_to_probability(american_odds):
     """Convert American odds to implied probability"""
     if pd.isna(american_odds):
+        return None
+    try:
+        american_odds = float(american_odds)
+    except (TypeError, ValueError):
+        return None
+    if american_odds == 0:
         return None
     if american_odds > 0:
         return 100 / (american_odds + 100)
@@ -301,6 +398,10 @@ def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name,
     except (TypeError, ValueError):
         # If conversion fails, continue with original values
         pass
+
+    for col in ["team_id", "home_team_id", "away_team_id"]:
+        if col in odds_df.columns:
+            odds_df[col] = pd.to_numeric(odds_df[col], errors="coerce")
     
     # Filter for relevant games involving either team
     team1_games = odds_df[(odds_df['team_id'] == team1_id) | 
@@ -345,11 +446,16 @@ def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name,
             try:
                 team1_odds = team1_ml['price'].iloc[0]
                 team2_odds = team2_ml['price'].iloc[0]
-                team1_implied_prob = american_odds_to_probability(team1_odds) * 100
-                team2_implied_prob = american_odds_to_probability(team2_odds) * 100
-                total_implied = team1_implied_prob + team2_implied_prob
-                vig = total_implied - 100
-                vig_info = f" | Vig: {vig:.1f}% | Data from: {sportsbook}"
+                team1_prob = american_odds_to_probability(team1_odds)
+                team2_prob = american_odds_to_probability(team2_odds)
+                if team1_prob is not None and team2_prob is not None:
+                    team1_implied_prob = team1_prob * 100
+                    team2_implied_prob = team2_prob * 100
+                    total_implied = team1_implied_prob + team2_implied_prob
+                    vig = total_implied - 100
+                    vig_info = f" | Vig: {vig:.1f}% | Data from: {sportsbook}"
+                else:
+                    vig_info = f" | Data from: {sportsbook}"
             except Exception:
                 vig_info = f" | Data from: {sportsbook}"
         
@@ -372,53 +478,60 @@ def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name,
                 # Calculate implied probabilities
                 team1_odds = team1_ml['price'].iloc[0]
                 team2_odds = team2_ml['price'].iloc[0]
+                team1_prob = american_odds_to_probability(team1_odds)
+                team2_prob = american_odds_to_probability(team2_odds)
+                if team1_prob is None or team2_prob is None:
+                    st.info("Moneyline odds are present, but one or both prices are invalid for probability conversion.")
+                    has_valid_odds = False
+                    team1_fair_prob = None
+                    team2_fair_prob = None
+                else:
+                    team1_implied_prob = team1_prob * 100
+                    team2_implied_prob = team2_prob * 100
+                    total_implied = team1_implied_prob + team2_implied_prob
+                    if total_implied <= 0:
+                        st.info("Moneyline odds are present, but implied probabilities are not usable.")
+                        has_valid_odds = False
+                        team1_fair_prob = None
+                        team2_fair_prob = None
+                    else:
+                        team1_fair_prob = (team1_implied_prob / total_implied) * 100
+                        team2_fair_prob = (team2_implied_prob / total_implied) * 100
                 
-                team1_implied_prob = american_odds_to_probability(team1_odds) * 100
-                team2_implied_prob = american_odds_to_probability(team2_odds) * 100
-                
-                # Calculate the overround/vig
-                total_implied = team1_implied_prob + team2_implied_prob
-                vig = total_implied - 100
-                
-                # Calculate fair probabilities (remove the vig)
-                team1_fair_prob = (team1_implied_prob / total_implied) * 100
-                team2_fair_prob = (team2_implied_prob / total_implied) * 100
-                
-                # Format the odds for display
-                team1_odds_str = f"+{team1_odds}" if team1_odds > 0 else f"{team1_odds}"
-                team2_odds_str = f"+{team2_odds}" if team2_odds > 0 else f"{team2_odds}"
-                
-                # Create a dataframe for display
-                ml_data = {
-                    'Team': [team1_name, team2_name],
-                    'Odds': [team1_odds_str, team2_odds_str],
-                    'Implied %': [f"{team1_implied_prob:.1f}%", f"{team2_implied_prob:.1f}%"],
-                    'Fair %': [f"{team1_fair_prob:.1f}%", f"{team2_fair_prob:.1f}%"]
-                }
-                ml_df = pd.DataFrame(ml_data)
-                
-                # Highlight the favorite
-                def style_ml_odds(val):
-                    if val in [team1_odds_str, team2_odds_str]:
-                        if val == team1_odds_str and team1_odds < team2_odds:
-                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
-                        elif val == team2_odds_str and team2_odds < team1_odds:
-                            return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
-                    return ''
-                
-                styled_ml_df = ml_df.style.map(style_ml_odds, subset=['Odds'])
-                st.dataframe(styled_ml_df, hide_index=True)
-                
-                # Add explanation
-                with st.expander("How to read moneyline odds"):
-                    st.write("""
-                    - **American Odds** show how much you'd win on a 100 dollar bet (if positive) or how much you need to bet to win $100 (if negative).
-                    - **Implied %** is the probability of winning implied by the odds.
-                    - **Fair %** is the implied probability with the bookmaker's margin removed.
-                    - The team with the lower (more negative) odds is the favorite.
-                    """)
-                
-                has_valid_odds = True
+                if team1_fair_prob is not None and team2_fair_prob is not None:
+                    team1_odds = float(team1_odds)
+                    team2_odds = float(team2_odds)
+                    team1_odds_str = f"+{int(team1_odds)}" if team1_odds > 0 else f"{int(team1_odds)}"
+                    team2_odds_str = f"+{int(team2_odds)}" if team2_odds > 0 else f"{int(team2_odds)}"
+                    
+                    ml_data = {
+                        'Team': [team1_name, team2_name],
+                        'Odds': [team1_odds_str, team2_odds_str],
+                        'Implied %': [f"{team1_implied_prob:.1f}%", f"{team2_implied_prob:.1f}%"],
+                        'Fair %': [f"{team1_fair_prob:.1f}%", f"{team2_fair_prob:.1f}%"]
+                    }
+                    ml_df = pd.DataFrame(ml_data)
+                    
+                    def style_ml_odds(val):
+                        if val in [team1_odds_str, team2_odds_str]:
+                            if val == team1_odds_str and team1_odds < team2_odds:
+                                return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                            elif val == team2_odds_str and team2_odds < team1_odds:
+                                return 'background-color: rgba(0, 255, 0, 0.1); font-weight: bold'
+                        return ''
+                    
+                    styled_ml_df = ml_df.style.map(style_ml_odds, subset=['Odds'])
+                    st.dataframe(styled_ml_df, hide_index=True)
+                    
+                    with st.expander("How to read moneyline odds"):
+                        st.write("""
+                        - **American Odds** show how much you'd win on a 100 dollar bet (if positive) or how much you need to bet to win $100 (if negative).
+                        - **Implied %** is the probability of winning implied by the odds.
+                        - **Fair %** is the implied probability with the bookmaker's margin removed.
+                        - The team with the lower (more negative) odds is the favorite.
+                        """)
+                    
+                    has_valid_odds = True
             except Exception as e:
                 st.warning(f"Error processing moneyline odds: {str(e)}")
         else:
@@ -489,6 +602,13 @@ def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name,
                 # Get model probabilities
                 model_team1_prob = prediction_prob * 100
                 model_team2_prob = (1 - prediction_prob) * 100
+
+                if 'team1_fair_prob' not in locals() or 'team2_fair_prob' not in locals():
+                    st.info("Edge analysis is unavailable because the moneyline probabilities could not be computed.")
+                    return
+                if team1_fair_prob is None or team2_fair_prob is None:
+                    st.info("Edge analysis is unavailable because the moneyline probabilities could not be computed.")
+                    return
                 
                 # Calculate edge (model probability - fair implied probability)
                 team1_edge = model_team1_prob - team1_fair_prob
@@ -619,9 +739,58 @@ def display_betting_odds(team1_id, team1_name, team1_seed, team2_id, team2_name,
 def load_team_summaries():
     """Load team summaries from JSON file"""
     try:
-        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "team_sum_clean.json")), "r") as f:
-            team_summaries = json.load(f)
-        return team_summaries
+        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data"))
+        athletic_path = os.path.join(data_dir, "athletic_team_capsules_2026.json")
+        team_sum_path = os.path.join(data_dir, "team_sum_2026.json")
+        fallback_paths = [
+            os.path.join(data_dir, "team_sum_clean_2026.json"),
+            os.path.join(data_dir, "team_sum_clean.json"),
+        ]
+
+        # Prefer the Athletic-derived capsule file and convert it to the app's
+        # expected team_id -> summary mapping.
+        if os.path.exists(athletic_path) and os.path.exists(team_sum_path):
+            with open(athletic_path, "r") as f:
+                athletic_items = json.load(f)
+            with open(team_sum_path, "r") as f:
+                existing_team_data = json.load(f)
+
+            name_to_id = {
+                item["team_name"]: str(item["team_id"])
+                for item in existing_team_data.values()
+            }
+
+            athletic_summaries = {}
+            for item in athletic_items:
+                team_id = name_to_id.get(item["team_name"])
+                if not team_id:
+                    continue
+
+                sections = []
+                strengths = item.get("strengths", "").strip()
+                weaknesses = item.get("weaknesses", "").strip()
+                outlook = item.get("outlook", "").strip()
+
+                if strengths:
+                    sections.append(f"Strengths: {strengths}")
+                if weaknesses:
+                    sections.append(f"Weaknesses: {weaknesses}")
+                if outlook:
+                    sections.append(f"Outlook: {outlook}")
+
+                summary = "\n\n".join(sections)
+                if summary:
+                    athletic_summaries[team_id] = summary
+
+            if athletic_summaries:
+                return athletic_summaries
+
+        for path in fallback_paths:
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    return json.load(f)
+
+        raise FileNotFoundError("No team summary file found")
     except Exception as e:
         st.warning(f"Could not load team summaries: {str(e)}")
         return {}
@@ -681,7 +850,7 @@ def create_basic_features(team1_stats, team2_stats, team1_seed, team2_seed):
     features['SoS_WinPct_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['WinPct'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['WinPct']
     features['SoS_Last30_interaction'] = team1_stats['Avg_Opp_WinPct'] * team1_stats['Last30_WinRatio'] - team2_stats['Avg_Opp_WinPct'] * team2_stats['Last30_WinRatio']
     
-    return pd.DataFrame([features])
+    return pd.DataFrame([features])[BASIC_FEATURE_ORDER]
 
 def create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_seed):
     """Create features for the basic XGBoost model with KenPom that doesn't use seeds"""
@@ -708,7 +877,7 @@ def create_basic_kenpom_features(team1_stats, team2_stats, team1_seed, team2_see
     # Add KenPom-SoS interaction feature
     features['KenPom_SoS_interaction'] = features['KenPom_diff'] * features['Avg_Opp_WinPct_diff']
     
-    return pd.DataFrame([features])
+    return pd.DataFrame([features])[BASIC_KENPOM_FEATURE_ORDER]
 
 def create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed):
     """Create features for the enhanced model"""
@@ -791,23 +960,27 @@ def predict_with_basic_kenpom_model(model, team1_stats, team2_stats, team1_seed,
 
 def predict_with_enhanced_model(model, team1_stats, team2_stats, team1_seed, team2_seed):
     """Make prediction using the enhanced model"""
-    # Create features
     X = create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed)
-    
-    # Make prediction
+
+    X_swapped = create_enhanced_features(team2_stats, team1_stats, team2_seed, team1_seed)
+
     if hasattr(model, 'predict_proba'):
-        # For sklearn models
-        return model.predict_proba(X)[0][1]
+        team1_win_prob = model.predict_proba(X)[0][1]
+        team2_win_prob = model.predict_proba(X_swapped)[0][1]
     else:
-        # For XGBoost models
-        dmatrix = xgb.DMatrix(X)
-        return model.predict(dmatrix)[0]
+        team1_win_prob = model.predict(xgb.DMatrix(X))[0]
+        team2_win_prob = model.predict(xgb.DMatrix(X_swapped))[0]
+
+    return (team1_win_prob + (1 - team2_win_prob)) / 2
 
 # ------------------------------
 # Styling Functions
 # ------------------------------
 def style_comparison_table(df, team1_name, team2_name):
     """Style the comparison table with color highlighting"""
+    if df.empty:
+        return df.style
+
     styled_df = df.copy()
     
     # Get the safe column names from DataFrame attributes
@@ -897,14 +1070,19 @@ def build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, met
     data = []
     for metric, name in zip(metrics, metric_names):
         if metric in team1_stats and metric in team2_stats:
+            team1_val = pd.to_numeric(pd.Series([team1_stats[metric]]), errors='coerce').iloc[0]
+            team2_val = pd.to_numeric(pd.Series([team2_stats[metric]]), errors='coerce').iloc[0]
+            if pd.isna(team1_val) or pd.isna(team2_val):
+                continue
+
             # Determine which team has the advantage
             is_lower_better = metric in lower_is_better
-            team1_better = team1_stats[metric] < team2_stats[metric] if is_lower_better else team1_stats[metric] > team2_stats[metric]
+            team1_better = team1_val < team2_val if is_lower_better else team1_val > team2_val
             
             data.append({
                 'Metric': name,
-                safe_team1_name: f"{team1_stats[metric]:.2f}",
-                safe_team2_name: f"{team2_stats[metric]:.2f}",
+                safe_team1_name: f"{team1_val:.2f}",
+                safe_team2_name: f"{team2_val:.2f}",
                 'Advantage': team1_name if team1_better else team2_name
             })
     
@@ -965,6 +1143,45 @@ def display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win
     else:
         st.write("Tempo data not available for one or both teams.")
 
+
+def get_key_matchup_factors(model_choice, features):
+    preferred = DISPLAY_FEATURE_PRIORITY.get(model_choice, [])
+    selected = []
+    for feature in preferred:
+        if feature in features.columns:
+            selected.append((feature, features.iloc[0][feature]))
+    if selected:
+        return selected
+
+    feature_diffs = pd.DataFrame({
+        'Feature': features.columns,
+        'Value': features.values[0]
+    })
+    feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
+    return list(feature_diffs.itertuples(index=False, name=None))
+
+
+def render_key_matchup_factors(model_choice, features, team1_name, team2_name):
+    st.write("Most important differences:")
+    for feature, value in get_key_matchup_factors(model_choice, features):
+        if feature in ['SeedDiff', 'Seed_diff']:
+            st.write(f"• Seed Difference: {value:.0f}")
+        elif feature in ['KenPomDiff', 'KenPom_diff']:
+            better_team = team1_name if value < 0 else team2_name
+            st.write(f"• KenPom Ranking: Advantage to {better_team}")
+        elif feature == 'SoS_squared_diff':
+            st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+        elif feature == 'SoS_WinPct_interaction':
+            st.write(f"• SoS-adjusted Win %: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+        elif feature == 'SoS_Last30_interaction':
+            st.write(f"• SoS-adjusted Recent Form: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+        elif feature == 'Avg_Opp_WinPct_diff':
+            st.write(f"• Strength of Schedule: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
+        else:
+            feature_name = feature.replace('Diff_', '').replace('_diff', '')
+            team_advantage = team1_name if value > 0 else team2_name
+            st.write(f"• {feature_name}: Advantage to {team_advantage}")
+
 # ------------------------------
 # Main Function
 # ------------------------------
@@ -994,8 +1211,8 @@ def main():
     model_choice = st.sidebar.selectbox(
         "Select Prediction Model",
         ["Basic Model", "Basic Model + KenPom", "Enhanced Model"],
-        index=0,  # Default to Basic Model
-        help="Basic Model uses season averages and strength of schedule. Basic Model + KenPom adds KenPom rankings. Enhanced Model includes additional advanced metrics."
+        index=2,
+        help="Choose between the 2026 basic, KenPom, and enhanced tournament models."
     )
     
     # Add option to show betting odds
@@ -1006,15 +1223,15 @@ def main():
     if model_choice == "Basic Model":
         model = load_basic_model()
         current_stats = current_basic_stats
-        st.sidebar.info("Using basic model with season averages and strength of schedule")
+        st.sidebar.info(MODEL_DESCRIPTIONS[model_choice])
     elif model_choice == "Basic Model + KenPom":
         model = load_basic_kenpom_model()
         current_stats = current_basic_stats_with_kenpom
-        st.sidebar.info("Using basic model with season averages, strength of schedule, and KenPom rankings")
+        st.sidebar.info(MODEL_DESCRIPTIONS[model_choice])
     else:
         model = load_enhanced_model()
         current_stats = current_enhanced_stats
-        st.sidebar.info("Using enhanced model with KenPom and advanced metrics")
+        st.sidebar.info(MODEL_DESCRIPTIONS[model_choice])
     
     # Team selection
     st.sidebar.header("Team Selection")
@@ -1055,6 +1272,10 @@ def main():
         team2_seed_locked = True
     else:
         team2_seed = st.sidebar.number_input("Team 2 Seed", min_value=1, max_value=16, value=8, step=1)
+
+    if team1_id == team2_id:
+        st.warning("Select two different teams to compare. BracketBrain does not support a team playing itself.")
+        return
     
     # Create a placeholder for team summaries
     team_summaries_placeholder = st.empty()
@@ -1150,33 +1371,7 @@ def main():
             else:
                 features = create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed)
             
-            # Display top 5 most important differences
-            st.write("Most important differences:")
-            feature_diffs = pd.DataFrame({
-                'Feature': features.columns,
-                'Value': features.values[0]
-            })
-            feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
-            
-            for _, row in feature_diffs.iterrows():
-                feature = row['Feature']
-                value = row['Value']
-                if feature in ['SeedDiff', 'Seed_diff']:
-                    st.write(f"• Seed Difference: {value:.0f}")
-                elif feature == 'KenPomDiff':
-                    st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_squared_diff':
-                    st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_WinPct_interaction':
-                    st.write(f"• SoS-adjusted Win %: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_Last30_interaction':
-                    st.write(f"• SoS-adjusted Recent Form: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'Avg_Opp_WinPct_diff':
-                    st.write(f"• Strength of Schedule: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                else:
-                    feature_name = feature.replace('Diff_', '').replace('_diff', '')
-                    team_advantage = team1_name if value > 0 else team2_name
-                    st.write(f"• {feature_name}: Advantage to {team_advantage}")
+            render_key_matchup_factors(model_choice, features, team1_name, team2_name)
             
             # Display tempo analysis
             display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability)
@@ -1258,33 +1453,7 @@ def main():
             else:
                 features = create_enhanced_features(team1_stats, team2_stats, team1_seed, team2_seed)
             
-            # Display top 5 most important differences
-            st.write("Most important differences:")
-            feature_diffs = pd.DataFrame({
-                'Feature': features.columns,
-                'Value': features.values[0]
-            })
-            feature_diffs = feature_diffs.sort_values(by='Value', key=abs, ascending=False).head(5)
-            
-            for _, row in feature_diffs.iterrows():
-                feature = row['Feature']
-                value = row['Value']
-                if feature in ['SeedDiff', 'Seed_diff']:
-                    st.write(f"• Seed Difference: {value:.0f}")
-                elif feature == 'KenPomDiff':
-                    st.write(f"• KenPom Ranking: {'Advantage to ' + team1_name if value < 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_squared_diff':
-                    st.write(f"• Strength of Schedule (squared): {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_WinPct_interaction':
-                    st.write(f"• SoS-adjusted Win %: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'SoS_Last30_interaction':
-                    st.write(f"• SoS-adjusted Recent Form: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                elif feature == 'Avg_Opp_WinPct_diff':
-                    st.write(f"• Strength of Schedule: {'Advantage to ' + team1_name if value > 0 else 'Advantage to ' + team2_name}")
-                else:
-                    feature_name = feature.replace('Diff_', '').replace('_diff', '')
-                    team_advantage = team1_name if value > 0 else team2_name
-                    st.write(f"• {feature_name}: Advantage to {team_advantage}")
+            render_key_matchup_factors(model_choice, features, team1_name, team2_name)
             
             # Display tempo analysis
             display_tempo_analysis(team1_name, team2_name, team1_stats, team2_stats, win_probability)
@@ -1307,10 +1476,18 @@ def main():
         tabs = st.tabs(["Overview", "Off/Def", "Advanced"])
         
         with tabs[0]:
-            # Overview tab
-            metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Score', 'Avg_Opp_Score', 'Avg_Opp_WinPct', 'SoS']
-            metric_names = ['Win %', 'Last 30 Win %', 'Points Scored', 'Points Allowed', 'Opponent Win %', 'Strength of Schedule']
-            lower_is_better = ['Avg_Opp_Score']
+            if model_choice in ["Basic Model", "Basic Model + KenPom"]:
+                metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
+                metric_names = ['Win %', 'Last 30 Win %', 'Opponent Win %']
+                lower_is_better = ['Avg_Opp_WinPct']
+                if model_choice == "Basic Model + KenPom" and 'KenPom' in team1_stats and 'KenPom' in team2_stats:
+                    metrics.append('KenPom')
+                    metric_names.append('KenPom Rank')
+                    lower_is_better.append('KenPom')
+            else:
+                metrics = ['KenPom', 'AdjNetRtg', 'Expected Win%', 'SOS_NetRtg']
+                metric_names = ['KenPom Rank', 'Adj Net', 'Expected Win %', 'SoS']
+                lower_is_better = ['KenPom']
             
             try:
                 df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
@@ -1324,10 +1501,14 @@ def main():
                 st.error(f"Error displaying comparison table: {str(e)}")
         
         with tabs[1]:
-            # Offensive/Defensive tab
-            metrics = ['Avg_Score', 'Avg_Opp_Score', 'FG_Pct', 'Opp_FG_Pct', 'FG3_Pct', 'Opp_FG3_Pct']
-            metric_names = ['Points Scored', 'Points Allowed', 'FG%', 'Opp FG%', '3PT%', 'Opp 3PT%']
-            lower_is_better = ['Avg_Opp_Score', 'Opp_FG_Pct', 'Opp_FG3_Pct']
+            if model_choice in ["Basic Model", "Basic Model + KenPom"]:
+                metrics = ['Avg_Score', 'Avg_FGM3', 'Avg_Ast', 'Avg_DR', 'Avg_Stl', 'Avg_Blk']
+                metric_names = ['Points', '3PM', 'Assists', 'Def Reb', 'Steals', 'Blocks']
+                lower_is_better = []
+            else:
+                metrics = ['AdjO', 'AdjD', 'ORtg', 'DRtg', 'Poss']
+                metric_names = ['Adj Off', 'Adj Def', 'Off Rtg', 'Def Rtg', 'Tempo']
+                lower_is_better = ['AdjD', 'DRtg']
             
             try:
                 df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
@@ -1341,97 +1522,98 @@ def main():
                 st.error(f"Error displaying comparison table: {str(e)}")
         
         with tabs[2]:
-            # Advanced tab - check if KenPom is available
-            if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
-                metrics = ['KenPom', 'SoS', 'Avg_Opp_WinPct']
-                metric_names = ['KenPom Rank', 'Strength of Schedule', 'Opponent Win %']
-                lower_is_better = ['KenPom']  # Lower KenPom rank is better
-                
-                try:
-                    df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
-                    styled_df = style_comparison_table(df, team1_name, team2_name)
-                    
-                    # Wrap table in a container for mobile scrolling
-                    st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-                    st.dataframe(styled_df, hide_index=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Error displaying comparison table: {str(e)}")
+            if model_choice in ["Basic Model", "Basic Model + KenPom"]:
+                metrics = ['Avg_TO', 'Avg_PF']
+                metric_names = ['Turnovers', 'Fouls']
+                lower_is_better = ['Avg_TO', 'Avg_PF']
             else:
-                st.info("Advanced metrics not available for this model selection.")
+                metrics = ['ThreePtRate', 'FTRate', 'AstRate', 'TORate', 'ScoreStdDev', 'MarginStdDev']
+                metric_names = ['3PT Rate', 'FT Rate', 'Assist Rate', 'TO Rate', 'Score Var', 'Margin Var']
+                lower_is_better = ['TORate', 'ScoreStdDev', 'MarginStdDev']
+
+            try:
+                df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, metrics, metric_names, lower_is_better)
+                styled_df = style_comparison_table(df, team1_name, team2_name)
+                
+                st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                st.dataframe(styled_df, hide_index=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error displaying comparison table: {str(e)}")
+
     else:
         # Desktop layout with more tabs (your original code)
         tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Offensive Stats", "Defensive Stats", "Performance Metrics"])
-    
-    with tab1:
+
+        with tab1:
         # Overview metrics
-        if model_choice == "Basic Model":
-            overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
-            overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
-            lower_is_better = ['Avg_Opp_WinPct']
-        elif model_choice == "Basic Model + KenPom":
-            overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
-            overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
-            if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
-                overview_metrics.append('KenPom')
-                overview_names.append('KenPom Ranking')
-            lower_is_better = ['Avg_Opp_WinPct', 'KenPom']
-        else:
-            overview_metrics = ['KenPom', 'AdjO', 'AdjD', 'AdjNetRtg', 'Expected Win%', 'SOS_NetRtg', 'Last10Win%']
-            overview_names = ['KenPom Rating', 'Adjusted Offensive Rating', 'Adjusted Defensive Rating', 
-                             'Adjusted Net Rating', 'Expected Win %', 'Strength of Schedule', 'Last 10 Games Win %']
-            lower_is_better = ['KenPom', 'AdjD']
+            if model_choice == "Basic Model":
+                overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
+                overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
+                lower_is_better = ['Avg_Opp_WinPct']
+            elif model_choice == "Basic Model + KenPom":
+                overview_metrics = ['WinPct', 'Last30_WinRatio', 'Avg_Opp_WinPct']
+                overview_names = ['Win Percentage', 'Last 30 Games Win Ratio', 'Opponent Win Percentage']
+                if 'KenPom' in team1_stats and 'KenPom' in team2_stats:
+                    overview_metrics.append('KenPom')
+                    overview_names.append('KenPom Ranking')
+                lower_is_better = ['Avg_Opp_WinPct', 'KenPom']
+            else:
+                overview_metrics = ['KenPom', 'AdjO', 'AdjD', 'AdjNetRtg', 'Expected Win%', 'SOS_NetRtg', 'Last10Win%']
+                overview_names = ['KenPom Rating', 'Adjusted Offensive Rating', 'Adjusted Defensive Rating', 
+                                 'Adjusted Net Rating', 'Expected Win %', 'Strength of Schedule', 'Last 10 Games Win %']
+                lower_is_better = ['KenPom', 'AdjD']
+            
+            overview_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
+                                                overview_metrics, overview_names, lower_is_better)
+            st.write('<div class="comparison-table">' + style_comparison_table(overview_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
         
-        overview_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
-                                            overview_metrics, overview_names, lower_is_better)
-        st.write('<div class="comparison-table">' + style_comparison_table(overview_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
-    
-    with tab2:
+        with tab2:
         # Offensive metrics
-        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
-            offensive_metrics = ['Avg_Score', 'Avg_FGM', 'Avg_FGA', 'Avg_FGM3', 'Avg_FGA3', 'Avg_FTM', 'Avg_FTA', 'Avg_OR', 'Avg_Ast']
-            offensive_names = ['Points per Game', 'Field Goals Made', 'Field Goals Attempted', '3-Point Field Goals Made',
-                              '3-Point Field Goals Attempted', 'Free Throws Made', 'Free Throws Attempted', 
-                              'Offensive Rebounds', 'Assists']
-        else:
-            offensive_metrics = ['AdjO', 'Score', 'ORtg', 'ThreePtRate', 'FTRate', 'AstRate', 'ORRate', 'Poss']
-            offensive_names = ['Adjusted Offensive Rating', 'Points per Game', 'Offensive Rating', '3-Point Rate', 
-                              'Free Throw Rate', 'Assist Rate', 'Offensive Rebound Rate', 'Tempo (Possessions/40 min)']
+            if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
+                offensive_metrics = ['Avg_Score', 'Avg_FGM', 'Avg_FGA', 'Avg_FGM3', 'Avg_FGA3', 'Avg_FTM', 'Avg_FTA', 'Avg_OR', 'Avg_Ast']
+                offensive_names = ['Points per Game', 'Field Goals Made', 'Field Goals Attempted', '3-Point Field Goals Made',
+                                  '3-Point Field Goals Attempted', 'Free Throws Made', 'Free Throws Attempted', 
+                                  'Offensive Rebounds', 'Assists']
+            else:
+                offensive_metrics = ['AdjO', 'Score', 'ORtg', 'ThreePtRate', 'FTRate', 'AstRate', 'ORRate', 'Poss']
+                offensive_names = ['Adjusted Offensive Rating', 'Points per Game', 'Offensive Rating', '3-Point Rate', 
+                                  'Free Throw Rate', 'Assist Rate', 'Offensive Rebound Rate', 'Tempo (Possessions/40 min)']
+            
+            offensive_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
+                                                 offensive_metrics, offensive_names)
+            st.write('<div class="comparison-table">' + style_comparison_table(offensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
         
-        offensive_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
-                                             offensive_metrics, offensive_names)
-        st.write('<div class="comparison-table">' + style_comparison_table(offensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
-    
-    with tab3:
+        with tab3:
         # Defensive metrics
-        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
-            defensive_metrics = ['Avg_DR', 'Avg_Stl', 'Avg_Blk']
-            defensive_names = ['Defensive Rebounds', 'Steals', 'Blocks']
-            lower_is_better = []
-        else:
-            defensive_metrics = ['AdjD', 'DRtg', 'DRRate']
-            defensive_names = ['Adjusted Defensive Rating', 'Defensive Rating', 'Defensive Rebound Rate']
-            lower_is_better = ['AdjD', 'DRtg']
+            if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
+                defensive_metrics = ['Avg_DR', 'Avg_Stl', 'Avg_Blk']
+                defensive_names = ['Defensive Rebounds', 'Steals', 'Blocks']
+                lower_is_better = []
+            else:
+                defensive_metrics = ['AdjD', 'DRtg', 'DRRate']
+                defensive_names = ['Adjusted Defensive Rating', 'Defensive Rating', 'Defensive Rebound Rate']
+                lower_is_better = ['AdjD', 'DRtg']
+            
+            defensive_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
+                                                 defensive_metrics, defensive_names, lower_is_better)
+            st.write('<div class="comparison-table">' + style_comparison_table(defensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
         
-        defensive_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
-                                             defensive_metrics, defensive_names, lower_is_better)
-        st.write('<div class="comparison-table">' + style_comparison_table(defensive_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
-    
-    with tab4:
+        with tab4:
         # Performance metrics
-        if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
-            performance_metrics = ['Avg_TO', 'Avg_PF']
-            performance_names = ['Turnovers', 'Personal Fouls']
-            lower_is_better = ['Avg_TO', 'Avg_PF']
-        else:
-            performance_metrics = ['HomeWin%', 'AwayWin%', 'NeutralWin%', 'TORate', 'ScoreStdDev', 'MarginStdDev']
-            performance_names = ['Home Win %', 'Away Win %', 'Neutral Site Win %', 'Turnover Rate', 
-                                'Scoring Consistency', 'Margin Consistency']
-            lower_is_better = ['TORate', 'ScoreStdDev', 'MarginStdDev']
-        
-        performance_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
-                                               performance_metrics, performance_names, lower_is_better)
-        st.write('<div class="comparison-table">' + style_comparison_table(performance_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
+            if model_choice == "Basic Model" or model_choice == "Basic Model + KenPom":
+                performance_metrics = ['Avg_TO', 'Avg_PF']
+                performance_names = ['Turnovers', 'Personal Fouls']
+                lower_is_better = ['Avg_TO', 'Avg_PF']
+            else:
+                performance_metrics = ['HomeWin%', 'AwayWin%', 'NeutralWin%', 'TORate', 'ScoreStdDev', 'MarginStdDev']
+                performance_names = ['Home Win %', 'Away Win %', 'Neutral Site Win %', 'Turnover Rate', 
+                                    'Scoring Consistency', 'Margin Consistency']
+                lower_is_better = ['TORate', 'ScoreStdDev', 'MarginStdDev']
+            
+            performance_df = build_comparison_table(team1_stats, team2_stats, team1_name, team2_name, 
+                                                   performance_metrics, performance_names, lower_is_better)
+            st.write('<div class="comparison-table">' + style_comparison_table(performance_df, team1_name, team2_name).to_html() + '</div>', unsafe_allow_html=True)
 
     st.markdown("---")  # Add a separator line
     
@@ -1553,9 +1735,9 @@ def main():
 # Add this function to load the bracket data
 @st.cache_data
 def load_bracket_data():
-    """Load the 2025 NCAA Tournament bracket data"""
+    """Load the latest NCAA Tournament bracket data keyed by TeamID."""
     try:
-        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "2025_Bracket.json")), "r") as f:
+        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pre_tourney_data", "2026_Bracket.json")), "r") as f:
             bracket_data = json.load(f)
         return bracket_data
     except Exception as e:

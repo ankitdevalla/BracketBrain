@@ -1,0 +1,21 @@
+SeedDiff
+KenPomDiff
+Diff_AdjO
+Diff_AdjD
+Diff_AdjNetRtg
+Diff_SOS_NetRtg
+Diff_Expected Win%
+Diff_ThreePtRate
+Diff_FTRate
+Diff_AstRate
+Diff_TORate
+Diff_ORRate
+Diff_DRRate
+Diff_ScoreStdDev
+Diff_MarginStdDev
+Diff_ORtgStdDev
+Diff_DRtgStdDev
+Diff_HomeWin%
+Diff_AwayWin%
+Diff_NeutralWin%
+Diff_Last10Win%

@@ -116,7 +116,7 @@ def match_team_name(team_name, team_mappings):
     # Return None if no match is found
     return None
 
-def fetch_ncaa_tournament_games(api_key, start_date="2026-03-16", end_date="2026-03-21"):
+def fetch_ncaa_tournament_games(api_key, start_date="2026-03-18", end_date="2026-03-21"):
     """
     Fetch NCAA Tournament games with moneyline and spread odds
     
@@ -149,7 +149,7 @@ def fetch_ncaa_tournament_games(api_key, start_date="2026-03-16", end_date="2026
             "includeOpposingOdds": "true",
             "startsAfter": start_date,
             "startsBefore": end_date,
-            "bookmakerID": 'fanduel',
+            "bookmakerID": 'draftkings',
             "limit": limit
         }
         

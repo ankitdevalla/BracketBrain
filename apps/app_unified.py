@@ -25,6 +25,7 @@ CURRENT_MODEL_FILES = {
     "basic_kenpom": "xgb_model_no_seeds_kenpom_2026_clean.pkl",
     "enhanced": "final_model_2026.pkl",
 }
+BRACKET_IMAGE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bracket_2026.png"))
 
 BASIC_FEATURE_ORDER = [
     "WinPct_diff",
@@ -1182,6 +1183,26 @@ def render_key_matchup_factors(model_choice, features, team1_name, team2_name):
             team_advantage = team1_name if value > 0 else team2_name
             st.write(f"• {feature_name}: Advantage to {team_advantage}")
 
+
+def render_bracket_viewer():
+    """Render a collapsible bracket image in the main page."""
+    if not st.session_state.get("show_bracket_viewer", False):
+        return
+
+    title_col, action_col = st.columns([6, 1])
+    with title_col:
+        st.subheader("2026 Bracket")
+        st.caption("Keep the bracket open while selecting teams. It will collapse after you click Predict Winner.")
+    with action_col:
+        if st.button("Hide Bracket", key="hide_bracket_viewer"):
+            st.session_state["show_bracket_viewer"] = False
+            st.rerun()
+
+    if os.path.exists(BRACKET_IMAGE_PATH):
+        st.image(BRACKET_IMAGE_PATH, use_container_width=True)
+    else:
+        st.info("Bracket image not found. Add `bracket_2026.png` at the project root to enable the viewer.")
+
 # ------------------------------
 # Main Function
 # ------------------------------
@@ -1235,6 +1256,15 @@ def main():
     
     # Team selection
     st.sidebar.header("Team Selection")
+    if "show_bracket_viewer" not in st.session_state:
+        st.session_state["show_bracket_viewer"] = False
+
+    if st.sidebar.button(
+        "Hide 2026 Bracket" if st.session_state["show_bracket_viewer"] else "Open 2026 Bracket",
+        key="toggle_bracket_viewer",
+        use_container_width=True,
+    ):
+        st.session_state["show_bracket_viewer"] = not st.session_state["show_bracket_viewer"]
     
     # Get list of teams for the current season
     current_teams = current_stats['TeamName'].unique()
@@ -1276,12 +1306,15 @@ def main():
     if team1_id == team2_id:
         st.warning("Select two different teams to compare. BracketBrain does not support a team playing itself.")
         return
+
+    render_bracket_viewer()
     
     # Create a placeholder for team summaries
     team_summaries_placeholder = st.empty()
     
     # Button to make prediction
     if st.sidebar.button("Predict Winner"):
+        st.session_state["show_bracket_viewer"] = False
         if model is None:
             st.error("Model not loaded. Please check if the model file exists.")
             return
